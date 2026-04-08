@@ -80,175 +80,167 @@ export default function DatePicker(props: DatePickerProps) {
   });
 
   return (
-    <>
-      {Boolean(value.length) && (
-        <button type='button' className='self-start' onClick={datePicker.clearValue}>
-          Clear
-        </button>
-      )}
+    <RootProvider value={datePicker}>
+      {label && <Label>{label}</Label>}
 
-      <RootProvider value={datePicker}>
-        {label && <Label>{label}</Label>}
+      <Control className={styles.control}>
+        <Input index={0} className={styles.input} />
+        {selectionMode === 'range' && <Input index={1} />}
 
-        <Control className={styles.control}>
-          <Input index={0} className={styles.input} />
-          {selectionMode === 'range' && <Input index={1} />}
+        <Trigger className={clsx(styles.trigger, styles.controlTrigger)}>
+          <CalendarIcon />
+        </Trigger>
 
-          <Trigger className={clsx(styles.trigger, styles.controlTrigger)}>
-            <CalendarIcon />
-          </Trigger>
+        <ClearTrigger>Clear</ClearTrigger>
+      </Control>
 
-          <ClearTrigger>Clear</ClearTrigger>
-        </Control>
-
-        {/* <DatePickerOriginal.PresetTrigger value='last7Days'>Last 7 days</DatePickerOriginal.PresetTrigger>
+      {/* <DatePickerOriginal.PresetTrigger value='last7Days'>Last 7 days</DatePickerOriginal.PresetTrigger>
         <DatePickerOriginal.PresetTrigger value='thisMonth'>This month</DatePickerOriginal.PresetTrigger>
         <DatePickerOriginal.PresetTrigger value='last30Days'>Last 30 days</DatePickerOriginal.PresetTrigger>
         <DatePickerOriginal.PresetTrigger value='thisYear'>This year</DatePickerOriginal.PresetTrigger> */}
 
-        <Portal>
-          <Positioner>
-            <Content className={styles.content}>
-              {/* <YearSelect /> */}
+      <Portal>
+        <Positioner>
+          <Content className={styles.content}>
+            {/* <YearSelect /> */}
 
-              {/* <MonthSelect /> */}
+            {/* <MonthSelect /> */}
 
-              <View view='day' className={styles.view}>
-                <Context>
-                  {(datePicker) => (
-                    <>
-                      <ViewControl className={styles.viewControl}>
-                        <PrevTrigger className={clsx(styles.trigger, styles.prevNextTrigger)}>
-                          <DownArrow className='rotate-90 size-3.5' />
-                        </PrevTrigger>
+            <View view='day' className={styles.view}>
+              <Context>
+                {(datePicker) => (
+                  <>
+                    <ViewControl className={styles.viewControl}>
+                      <PrevTrigger className={clsx(styles.trigger, styles.prevNextTrigger)}>
+                        <DownArrow className='rotate-90 size-3.5' />
+                      </PrevTrigger>
 
-                        <ViewTrigger className={clsx(styles.trigger, styles.viewTrigger)}>
-                          <RangeText />
-                        </ViewTrigger>
+                      <ViewTrigger className={clsx(styles.trigger, styles.viewTrigger)}>
+                        <RangeText />
+                      </ViewTrigger>
 
-                        <NextTrigger className={clsx(styles.trigger, styles.prevNextTrigger)}>
-                          <DownArrow className='-rotate-90 size-3.5' />
-                        </NextTrigger>
-                      </ViewControl>
+                      <NextTrigger className={clsx(styles.trigger, styles.prevNextTrigger)}>
+                        <DownArrow className='-rotate-90 size-3.5' />
+                      </NextTrigger>
+                    </ViewControl>
 
-                      <Table className={styles.table}>
-                        <TableHead>
-                          <TableRow>
-                            {datePicker.weekDays.map((weekDay, id) => (
-                              <TableHeader key={id} className={styles.tableHeader}>
-                                {weekDay.short}
-                              </TableHeader>
+                    <Table className={styles.table}>
+                      <TableHead>
+                        <TableRow>
+                          {datePicker.weekDays.map((weekDay, id) => (
+                            <TableHeader key={id} className={styles.tableHeader}>
+                              {weekDay.short}
+                            </TableHeader>
+                          ))}
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {datePicker.weeks.map((week, id) => (
+                          <TableRow key={id}>
+                            {week.map((day, id) => (
+                              <TableCell key={id} value={day} className={styles.tableCell}>
+                                <TableCellTrigger className={clsx(styles.trigger, styles.tableCellTrigger)}>
+                                  {day.day}
+                                </TableCellTrigger>
+                              </TableCell>
                             ))}
                           </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {datePicker.weeks.map((week, id) => (
-                            <TableRow key={id}>
-                              {week.map((day, id) => (
-                                <TableCell key={id} value={day} className={styles.tableCell}>
-                                  <TableCellTrigger className={clsx(styles.trigger, styles.tableCellTrigger)}>
-                                    {day.day}
-                                  </TableCellTrigger>
-                                </TableCell>
-                              ))}
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </>
-                  )}
-                </Context>
-              </View>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </>
+                )}
+              </Context>
+            </View>
 
-              <View view='month' className={styles.view}>
-                <Context>
-                  {(datePicker) => (
-                    <>
-                      <ViewControl className={styles.viewControl}>
-                        <PrevTrigger className={clsx(styles.trigger, styles.prevNextTrigger)}>
-                          <DownArrow className='rotate-90 size-3.5' />
-                        </PrevTrigger>
+            <View view='month' className={styles.view}>
+              <Context>
+                {(datePicker) => (
+                  <>
+                    <ViewControl className={styles.viewControl}>
+                      <PrevTrigger className={clsx(styles.trigger, styles.prevNextTrigger)}>
+                        <DownArrow className='rotate-90 size-3.5' />
+                      </PrevTrigger>
 
-                        <ViewTrigger className={clsx(styles.trigger, styles.viewTrigger)}>
-                          <RangeText />
-                        </ViewTrigger>
+                      <ViewTrigger className={clsx(styles.trigger, styles.viewTrigger)}>
+                        <RangeText />
+                      </ViewTrigger>
 
-                        <NextTrigger className={clsx(styles.trigger, styles.prevNextTrigger)}>
-                          <DownArrow className='-rotate-90 size-3.5' />
-                        </NextTrigger>
-                      </ViewControl>
+                      <NextTrigger className={clsx(styles.trigger, styles.prevNextTrigger)}>
+                        <DownArrow className='-rotate-90 size-3.5' />
+                      </NextTrigger>
+                    </ViewControl>
 
-                      <Table className={styles.table}>
-                        <TableBody>
-                          {datePicker.getMonthsGrid({ columns: 4, format: 'short' }).map((months, id) => (
-                            <TableRow key={id}>
-                              {months.map((month, id) => (
-                                <TableCell key={id} value={month.value} className={styles.tableCell}>
-                                  <TableCellTrigger
-                                    className={clsx(styles.trigger, styles.tableCellTrigger, styles.fontBold)}
-                                  >
-                                    {month.label}
-                                  </TableCellTrigger>
-                                </TableCell>
-                              ))}
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </>
-                  )}
-                </Context>
-              </View>
+                    <Table className={styles.table}>
+                      <TableBody>
+                        {datePicker.getMonthsGrid({ columns: 4, format: 'short' }).map((months, id) => (
+                          <TableRow key={id}>
+                            {months.map((month, id) => (
+                              <TableCell key={id} value={month.value} className={styles.tableCell}>
+                                <TableCellTrigger
+                                  className={clsx(styles.trigger, styles.tableCellTrigger, styles.fontBold)}
+                                >
+                                  {month.label}
+                                </TableCellTrigger>
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </>
+                )}
+              </Context>
+            </View>
 
-              <View view='year' className={styles.view}>
-                <Context>
-                  {(datePicker) => (
-                    <>
-                      <ViewControl className={styles.viewControl}>
-                        <PrevTrigger className={clsx(styles.trigger, styles.prevNextTrigger)}>
-                          <DownArrow className='rotate-90 size-3.5' />
-                        </PrevTrigger>
+            <View view='year' className={styles.view}>
+              <Context>
+                {(datePicker) => (
+                  <>
+                    <ViewControl className={styles.viewControl}>
+                      <PrevTrigger className={clsx(styles.trigger, styles.prevNextTrigger)}>
+                        <DownArrow className='rotate-90 size-3.5' />
+                      </PrevTrigger>
 
-                        <ViewTrigger
-                          className={clsx(styles.trigger, styles.viewTrigger)}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            datePicker.setView('day');
-                          }}
-                        >
-                          <RangeText />
-                        </ViewTrigger>
+                      <ViewTrigger
+                        className={clsx(styles.trigger, styles.viewTrigger)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          datePicker.setView('day');
+                        }}
+                      >
+                        <RangeText />
+                      </ViewTrigger>
 
-                        <NextTrigger className={clsx(styles.trigger, styles.prevNextTrigger)}>
-                          <DownArrow className='-rotate-90 size-3.5' />
-                        </NextTrigger>
-                      </ViewControl>
+                      <NextTrigger className={clsx(styles.trigger, styles.prevNextTrigger)}>
+                        <DownArrow className='-rotate-90 size-3.5' />
+                      </NextTrigger>
+                    </ViewControl>
 
-                      <Table className={styles.table}>
-                        <TableBody>
-                          {datePicker.getYearsGrid({ columns: 4 }).map((years, id) => (
-                            <TableRow key={id}>
-                              {years.map((year, id) => (
-                                <TableCell key={id} value={year.value} className={styles.tableCell}>
-                                  <TableCellTrigger
-                                    className={clsx(styles.trigger, styles.tableCellTrigger, styles.fontBold)}
-                                  >
-                                    {year.label}
-                                  </TableCellTrigger>
-                                </TableCell>
-                              ))}
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </>
-                  )}
-                </Context>
-              </View>
-            </Content>
-          </Positioner>
-        </Portal>
-      </RootProvider>
-    </>
+                    <Table className={styles.table}>
+                      <TableBody>
+                        {datePicker.getYearsGrid({ columns: 4 }).map((years, id) => (
+                          <TableRow key={id}>
+                            {years.map((year, id) => (
+                              <TableCell key={id} value={year.value} className={styles.tableCell}>
+                                <TableCellTrigger
+                                  className={clsx(styles.trigger, styles.tableCellTrigger, styles.fontBold)}
+                                >
+                                  {year.label}
+                                </TableCellTrigger>
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </>
+                )}
+              </Context>
+            </View>
+          </Content>
+        </Positioner>
+      </Portal>
+    </RootProvider>
   );
 }
