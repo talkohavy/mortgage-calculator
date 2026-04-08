@@ -1,8 +1,20 @@
 import { useCallback, useId, useRef, useState } from 'react';
+import { parseDate } from '@ark-ui/react/date-picker';
 import DatePicker from '../../components/DatePicker';
-import { calculateMortgage, lookupCpi } from '../../lib/mortgageCalculator';
+import {
+  calculateMortgage,
+  downloadFormAsJson,
+  lookupCpi,
+  parseFormJson,
+  serializeDate,
+} from '../../lib/mortgageCalculator';
 import type { MortgageResult } from '../../lib/mortgageCalculator';
 import type { DateValue } from '@ark-ui/react/date-picker';
+
+function isoToDateValue(iso: string | null): DateValue[] {
+  if (!iso) return [];
+  return [parseDate(new Date(iso))];
+}
 
 type FormRow = {
   id: number;
@@ -65,6 +77,7 @@ export default function MortgageCalculatorPage() {
   const [error, setError] = useState<string>('');
 
   const tableEndRef = useRef<HTMLDivElement>(null);
+  const importFileRef = useRef<HTMLInputElement>(null);
 
   const addRow = useCallback(() => {
     setRows((prev) => [...prev, { id: nextId(), date: [], pmt: 0, cpi: 0, cpiAutoFilled: false }]);
@@ -138,15 +151,101 @@ export default function MortgageCalculatorPage() {
     setError('');
   }, []);
 
+  const handleExport = useCallback(() => {
+    downloadFormAsJson({
+      version: 1,
+      housePrice,
+      baseCpi,
+      currentCpi,
+      payments: rows.map(({ date, pmt, cpi, cpiAutoFilled }) => ({
+        date: serializeDate(date),
+        pmt,
+        cpi,
+        cpiAutoFilled,
+      })),
+    });
+  }, [housePrice, baseCpi, currentCpi, rows]);
+
+  const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const raw = JSON.parse(event.target?.result as string);
+        const state = parseFormJson(raw);
+        setHousePrice(state.housePrice);
+        setBaseCpi(state.baseCpi);
+        setCurrentCpi(state.currentCpi);
+        setRows(
+          state.payments.map((p) => ({
+            id: nextId(),
+            date: isoToDateValue(p.date),
+            pmt: p.pmt,
+            cpi: p.cpi,
+            cpiAutoFilled: p.cpiAutoFilled,
+          })),
+        );
+        setResult(null);
+        setError('');
+      } catch (err) {
+        setError(`Import failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      } finally {
+        if (importFileRef.current) importFileRef.current.value = '';
+      }
+    };
+    reader.readAsText(file);
+  }, []);
+
   return (
     <div className='size-full flex flex-col overflow-auto bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100'>
       <div className='max-w-5xl w-full mx-auto px-4 py-10 flex flex-col gap-8'>
         {/* Header */}
-        <div className='flex flex-col gap-1'>
-          <h1 className='text-3xl font-bold tracking-tight'>Mortgage CPI Calculator</h1>
-          <p className='text-slate-400 text-sm'>
-            Calculate how much of your mortgage remains in today&apos;s real (inflation-adjusted) money.
-          </p>
+        <div className='flex items-start justify-between gap-4'>
+          <div className='flex flex-col gap-1'>
+            <h1 className='text-3xl font-bold tracking-tight'>Mortgage CPI Calculator</h1>
+            <p className='text-slate-400 text-sm'>
+              Calculate how much of your mortgage remains in today&apos;s real (inflation-adjusted) money.
+            </p>
+          </div>
+
+          <div className='flex items-center gap-2 shrink-0 mt-1'>
+            {/* Hidden file input for import */}
+            <input
+              ref={importFileRef}
+              type='file'
+              accept='.json,application/json'
+              onChange={handleImport}
+              className='hidden'
+            />
+            <button
+              type='button'
+              onClick={() => importFileRef.current?.click()}
+              className='flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium transition-colors'
+              title='Load a previously saved mortgage-data.json file'
+            >
+              <svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+                <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
+                <polyline points='17 8 12 3 7 8' />
+                <line x1='12' y1='3' x2='12' y2='15' />
+              </svg>
+              Import
+            </button>
+            <button
+              type='button'
+              onClick={handleExport}
+              className='flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium transition-colors'
+              title='Download current form as mortgage-data.json'
+            >
+              <svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+                <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
+                <polyline points='7 10 12 15 17 10' />
+                <line x1='12' y1='15' x2='12' y2='3' />
+              </svg>
+              Export
+            </button>
+          </div>
         </div>
 
         {/* Loan Details */}
