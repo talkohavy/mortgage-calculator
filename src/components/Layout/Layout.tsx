@@ -1,5 +1,4 @@
 import type { PropsWithChildren } from 'react';
-import { MemoryMonitor } from '../MemoryMonitor';
 import Header from './Header';
 import Main from './Main';
 import Sidebar from './Sidebar';
@@ -17,8 +16,6 @@ export default function Layout(props: LayoutProps) {
         <Sidebar />
 
         <Main>{children}</Main>
-
-        <MemoryMonitor />
       </div>
     </div>
   );
