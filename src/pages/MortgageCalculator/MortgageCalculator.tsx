@@ -1,204 +1,39 @@
-import { useCallback, useId, useRef, useState } from 'react';
-import { parseDate } from '@ark-ui/react/date-picker';
 import DatePicker from '../../components/DatePicker';
-import {
-  CPI_BASE_YEARS,
-  calculateMortgage,
-  downloadFormAsJson,
-  lookupCpi,
-  parseFormJson,
-  serializeDate,
-} from '../../lib/mortgageCalculator';
-import type { MortgageResult } from '../../lib/mortgageCalculator';
+import { CPI_BASE_YEARS, lookupCpi } from '../../lib/mortgageCalculator';
+import ResultCard from './content/ResultCard';
+import { useMortgageCalculatorPageLogic } from './logic/useMortgageCalculatorPageLogic';
+import { formatUSD } from './logic/utils/formatUSD';
 import type { DateValue } from '@ark-ui/react/date-picker';
 
-function isoToDateValue(iso: string | null): DateValue[] {
-  if (!iso) return [];
-  return [parseDate(new Date(iso))];
-}
-
-type FormRow = {
-  id: number;
-  date: DateValue[];
-  pmt: number;
-  cpi: number;
-  cpiAutoFilled: boolean;
-};
-
-const DEFAULT_ROWS: FormRow[] = [
-  { id: 1, date: [], pmt: 0, cpi: 0, cpiAutoFilled: false },
-  { id: 2, date: [], pmt: 0, cpi: 0, cpiAutoFilled: false },
-  { id: 3, date: [], pmt: 0, cpi: 0, cpiAutoFilled: false },
-];
-
-function formatUSD(value: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-function ResultCard({
-  label,
-  value,
-  color,
-  subtitle,
-}: {
-  label: string;
-  value: string;
-  color: string;
-  subtitle?: string;
-}) {
-  return (
-    <div className={`rounded-xl border ${color} p-5 flex flex-col gap-1`}>
-      <span className='text-xs font-semibold uppercase tracking-wider opacity-60'>{label}</span>
-      <span className='text-2xl font-bold'>{value}</span>
-      {subtitle && <span className='text-xs opacity-50 mt-1'>{subtitle}</span>}
-    </div>
-  );
-}
-
-let rowCounter = 4;
-function nextId() {
-  return rowCounter++;
-}
-
 export default function MortgageCalculatorPage() {
-  const housePriceId = useId();
-  const baseCpiId = useId();
-  const currentCpiId = useId();
-
-  const [housePrice, setHousePrice] = useState<string>('5000000');
-  const [baseCpi, setBaseCpi] = useState<string>('100');
-  const [currentCpi, setCurrentCpi] = useState<string>('');
-  const [cpiBaseYear, setCpiBaseYear] = useState<number>(CPI_BASE_YEARS.at(-1) ?? 2024);
-  const [rows, setRows] = useState<FormRow[]>(DEFAULT_ROWS);
-  const [result, setResult] = useState<MortgageResult | null>(null);
-  const [error, setError] = useState<string>('');
-
-  const tableEndRef = useRef<HTMLDivElement>(null);
-  const importFileRef = useRef<HTMLInputElement>(null);
-
-  const addRow = useCallback(() => {
-    setRows((prev) => [...prev, { id: nextId(), date: [], pmt: 0, cpi: 0, cpiAutoFilled: false }]);
-    setTimeout(() => tableEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
-  }, []);
-
-  const removeRow = useCallback((id: number) => {
-    setRows((prev) => (prev.length > 1 ? prev.filter((r) => r.id !== id) : prev));
-  }, []);
-
-  const updateRowDate = useCallback((id: number, date: DateValue[]) => {
-    setRows((prev) =>
-      prev.map((r) => {
-        if (r.id !== id) return r;
-        const d = date[0];
-        const found = d ? lookupCpi(d.year, d.month, cpiBaseYear) : null;
-        return {
-          ...r,
-          date,
-          cpi: found !== null ? found : r.cpiAutoFilled ? 0 : r.cpi,
-          cpiAutoFilled: found !== null,
-        };
-      }),
-    );
-    setResult(null);
-  }, [cpiBaseYear]);
-
-  const updateRow = useCallback((id: number, field: 'pmt' | 'cpi', raw: string) => {
-    setRows((prev) =>
-      prev.map((r) => {
-        if (r.id !== id) return r;
-        const num = Number.parseFloat(raw);
-        const updated: FormRow = { ...r, [field]: Number.isNaN(num) ? 0 : num };
-        if (field === 'cpi') updated.cpiAutoFilled = false;
-        return updated;
-      }),
-    );
-  }, []);
-
-  const handleCalculate = useCallback(() => {
-    setError('');
-    const price = Number.parseFloat(housePrice);
-    const base = Number.parseFloat(baseCpi);
-    const current = Number.parseFloat(currentCpi);
-
-    if (!price || price <= 0) {
-      setError('Please enter a valid house price.');
-      return;
-    }
-    if (!base || base <= 0) {
-      setError('Please enter a valid base CPI.');
-      return;
-    }
-    if (!current || current <= 0) {
-      setError('Please enter a valid current CPI.');
-      return;
-    }
-
-    const payments = rows.map(({ date, pmt, cpi }) => ({
-      label: date[0] ? `${date[0].month}/${date[0].year}` : '',
-      pmt,
-      cpi,
-    }));
-
-    const res = calculateMortgage({ housePrice: price, baseCpi: base, currentCpi: current, payments });
-    setResult(res);
-  }, [housePrice, baseCpi, currentCpi, rows]);
-
-  const handleReset = useCallback(() => {
-    setResult(null);
-    setError('');
-  }, []);
-
-  const handleExport = useCallback(() => {
-    downloadFormAsJson({
-      version: 1,
-      housePrice,
-      baseCpi,
-      currentCpi,
-      payments: rows.map(({ date, pmt, cpi, cpiAutoFilled }) => ({
-        date: serializeDate(date),
-        pmt,
-        cpi,
-        cpiAutoFilled,
-      })),
-    });
-  }, [housePrice, baseCpi, currentCpi, rows]);
-
-  const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const raw = JSON.parse(event.target?.result as string);
-        const state = parseFormJson(raw);
-        setHousePrice(state.housePrice);
-        setBaseCpi(state.baseCpi);
-        setCurrentCpi(state.currentCpi);
-        setRows(
-          state.payments.map((p) => ({
-            id: nextId(),
-            date: isoToDateValue(p.date),
-            pmt: p.pmt,
-            cpi: p.cpi,
-            cpiAutoFilled: p.cpiAutoFilled,
-          })),
-        );
-        setResult(null);
-        setError('');
-      } catch (err) {
-        setError(`Import failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      } finally {
-        if (importFileRef.current) importFileRef.current.value = '';
-      }
-    };
-    reader.readAsText(file);
-  }, []);
+  const {
+    importFileRef,
+    handleImport,
+    handleExport,
+    housePrice,
+    housePriceId,
+    baseCpi,
+    baseCpiId,
+    currentCpi,
+    currentCpiId,
+    setBaseCpi,
+    setResult,
+    setHousePrice,
+    setCurrentCpi,
+    setCpiBaseYear,
+    setRows,
+    cpiBaseYear,
+    rows,
+    updateRow,
+    updateRowDate,
+    removeRow,
+    addRow,
+    tableEndRef,
+    handleReset,
+    result,
+    handleCalculate,
+    error,
+  } = useMortgageCalculatorPageLogic();
 
   return (
     <div className='size-full flex flex-col overflow-auto bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100'>
@@ -227,20 +62,41 @@ export default function MortgageCalculatorPage() {
               className='flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium transition-colors'
               title='Load a previously saved mortgage-data.json file'
             >
-              <svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                width='15'
+                height='15'
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='2'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+              >
                 <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
                 <polyline points='17 8 12 3 7 8' />
                 <line x1='12' y1='3' x2='12' y2='15' />
               </svg>
               Import
             </button>
+
             <button
               type='button'
               onClick={handleExport}
               className='flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium transition-colors'
               title='Download current form as mortgage-data.json'
             >
-              <svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                width='15'
+                height='15'
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='2'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+              >
                 <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
                 <polyline points='7 10 12 15 17 10' />
                 <line x1='12' y1='15' x2='12' y2='3' />
@@ -313,17 +169,27 @@ export default function MortgageCalculatorPage() {
               <label htmlFor='cpi-base-year' className='text-xs font-medium text-slate-400 uppercase tracking-wider'>
                 CPI Base Year
               </label>
-              <select id='cpi-base-year'
+              <select
+                id='cpi-base-year'
                 value={cpiBaseYear}
                 onChange={(e) => {
-                  setCpiBaseYear(Number(e.target.value));
-                  setRows((prev) => prev.map((r) => ({ ...r, cpi: 0, cpiAutoFilled: false })));
+                  const newBaseYear = Number(e.target.value);
+                  setCpiBaseYear(newBaseYear);
+                  setRows((prev) =>
+                    prev.map((r) => {
+                      if (!r.cpiAutoFilled || !r.date[0]) return r;
+                      const found = lookupCpi(r.date[0].year, r.date[0].month, newBaseYear);
+                      return found !== null ? { ...r, cpi: found } : { ...r, cpi: 0, cpiAutoFilled: false };
+                    }),
+                  );
                   setResult(null);
                 }}
                 className='bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500'
               >
                 {CPI_BASE_YEARS.map((y) => (
-                  <option key={y} value={y}>{y}</option>
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
                 ))}
               </select>
             </div>
@@ -482,12 +348,14 @@ export default function MortgageCalculatorPage() {
                 color='border-slate-600 text-slate-100'
                 subtitle={`Original: ${formatUSD(Number.parseFloat(housePrice))}`}
               />
+
               <ResultCard
                 label="Total Paid (Today's Value)"
                 value={formatUSD(result.totalPaidToday)}
                 color='border-emerald-700/60 text-emerald-300'
                 subtitle={`Nominal paid: ${formatUSD(result.totalPaidNominal)}`}
               />
+
               <ResultCard
                 label='Remaining to Pay'
                 value={formatUSD(Math.max(0, result.remainingToday))}
