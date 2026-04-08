@@ -1,5 +1,6 @@
 import DatePicker from '../../components/DatePicker';
-import { CPI_BASE_YEARS, lookupCpi } from '../../lib/mortgageCalculator';
+import Header from './content/Header';
+import LoanDetails from './content/LoanDetails';
 import ResultCard from './content/ResultCard';
 import { useMortgageCalculatorPageLogic } from './logic/useMortgageCalculatorPageLogic';
 import { formatUSD } from './logic/utils/formatUSD';
@@ -38,163 +39,23 @@ export default function MortgageCalculatorPage() {
   return (
     <div className='size-full flex flex-col overflow-auto bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100'>
       <div className='max-w-5xl w-full mx-auto px-4 py-10 flex flex-col gap-8'>
-        {/* Header */}
-        <div className='flex items-start justify-between gap-4'>
-          <div className='flex flex-col gap-1'>
-            <h1 className='text-3xl font-bold tracking-tight'>Mortgage CPI Calculator</h1>
-            <p className='text-slate-400 text-sm'>
-              Calculate how much of your mortgage remains in today&apos;s real (inflation-adjusted) money.
-            </p>
-          </div>
+        <Header importFileRef={importFileRef} handleImport={handleImport} handleExport={handleExport} />
 
-          <div className='flex items-center gap-2 shrink-0 mt-1'>
-            {/* Hidden file input for import */}
-            <input
-              ref={importFileRef}
-              type='file'
-              accept='.json,application/json'
-              onChange={handleImport}
-              className='hidden'
-            />
-            <button
-              type='button'
-              onClick={() => importFileRef.current?.click()}
-              className='flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium transition-colors'
-              title='Load a previously saved mortgage-data.json file'
-            >
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                width='15'
-                height='15'
-                viewBox='0 0 24 24'
-                fill='none'
-                stroke='currentColor'
-                strokeWidth='2'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              >
-                <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
-                <polyline points='17 8 12 3 7 8' />
-                <line x1='12' y1='3' x2='12' y2='15' />
-              </svg>
-              Import
-            </button>
-
-            <button
-              type='button'
-              onClick={handleExport}
-              className='flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium transition-colors'
-              title='Download current form as mortgage-data.json'
-            >
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                width='15'
-                height='15'
-                viewBox='0 0 24 24'
-                fill='none'
-                stroke='currentColor'
-                strokeWidth='2'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              >
-                <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
-                <polyline points='7 10 12 15 17 10' />
-                <line x1='12' y1='15' x2='12' y2='3' />
-              </svg>
-              Export
-            </button>
-          </div>
-        </div>
-
-        {/* Loan Details */}
-        <section className='bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6 flex flex-col gap-5'>
-          <h2 className='text-lg font-semibold text-slate-200'>Loan Details</h2>
-
-          <div className='grid grid-cols-1 sm:grid-cols-4 gap-4'>
-            <div className='flex flex-col gap-1.5'>
-              <label htmlFor={housePriceId} className='text-xs font-medium text-slate-400 uppercase tracking-wider'>
-                Original House Price ($)
-              </label>
-              <input
-                id={housePriceId}
-                type='number'
-                min={0}
-                value={housePrice}
-                onChange={(e) => {
-                  setHousePrice(e.target.value);
-                  setResult(null);
-                }}
-                placeholder='e.g. 5000000'
-                className='bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
-              />
-            </div>
-
-            <div className='flex flex-col gap-1.5'>
-              <label htmlFor={baseCpiId} className='text-xs font-medium text-slate-400 uppercase tracking-wider'>
-                CPI at Purchase Date
-              </label>
-              <input
-                id={baseCpiId}
-                type='number'
-                min={0}
-                value={baseCpi}
-                onChange={(e) => {
-                  setBaseCpi(e.target.value);
-                  setResult(null);
-                }}
-                placeholder='e.g. 100'
-                className='bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
-              />
-            </div>
-
-            <div className='flex flex-col gap-1.5'>
-              <label htmlFor={currentCpiId} className='text-xs font-medium text-slate-400 uppercase tracking-wider'>
-                Current CPI (Today)
-              </label>
-              <input
-                id={currentCpiId}
-                type='number'
-                min={0}
-                value={currentCpi}
-                onChange={(e) => {
-                  setCurrentCpi(e.target.value);
-                  setResult(null);
-                }}
-                placeholder='e.g. 310'
-                className='bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
-              />
-            </div>
-
-            <div className='flex flex-col gap-1.5'>
-              <label htmlFor='cpi-base-year' className='text-xs font-medium text-slate-400 uppercase tracking-wider'>
-                CPI Base Year
-              </label>
-              <select
-                id='cpi-base-year'
-                value={cpiBaseYear}
-                onChange={(e) => {
-                  const newBaseYear = Number(e.target.value);
-                  setCpiBaseYear(newBaseYear);
-                  setRows((prev) =>
-                    prev.map((r) => {
-                      if (!r.cpiAutoFilled || !r.date[0]) return r;
-                      const found = lookupCpi(r.date[0].year, r.date[0].month, newBaseYear);
-                      return found !== null ? { ...r, cpi: found } : { ...r, cpi: 0, cpiAutoFilled: false };
-                    }),
-                  );
-                  setResult(null);
-                }}
-                className='bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500'
-              >
-                {CPI_BASE_YEARS.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </section>
+        <LoanDetails
+          housePriceId={housePriceId}
+          housePrice={housePrice}
+          baseCpiId={baseCpiId}
+          baseCpi={baseCpi}
+          currentCpiId={currentCpiId}
+          currentCpi={currentCpi}
+          cpiBaseYear={cpiBaseYear}
+          setHousePrice={setHousePrice}
+          setBaseCpi={setBaseCpi}
+          setCurrentCpi={setCurrentCpi}
+          setCpiBaseYear={setCpiBaseYear}
+          setResult={setResult}
+          setRows={setRows}
+        />
 
         {/* Payment History */}
         <section className='bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6 flex flex-col gap-4'>
