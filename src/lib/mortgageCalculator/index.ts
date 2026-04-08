@@ -1,3 +1,12 @@
 export * from './mortgageCalculator';
-export * from './cpiLookup';
-export * from './formPersistence';
+
+// utils
+export * from './logic/utils/cpiLookup';
+export * from './logic/utils/downloadFormAsJson';
+export * from './logic/utils/parseFormJson';
+export * from './logic/utils/serializeDate';
+export * from './logic/utils/toTodayValue';
+export * from './logic/utils/vatFactor';
+
+// types
+export * from './types';

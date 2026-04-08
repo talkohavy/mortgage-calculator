@@ -1,67 +1,51 @@
-export type PaymentRow = {
-  label: string;
-  pmt: number;
-  cpi: number;
-};
+import { toTodayValue } from './logic/utils/toTodayValue';
+import type { MortgageResult, PaymentRow } from './types';
 
-export type MortgageInput = {
+export type CalculateMortgageProps = {
   housePrice: number;
   baseCpi: number;
   currentCpi: number;
+  /** VAT rate (%) at time of purchase, e.g. 17. 0 = not tracking VAT. */
+  vatAtPurchase: number;
+  /** Current VAT rate (%), e.g. 18. 0 = not tracking VAT. */
+  vatToday: number;
   payments: PaymentRow[];
 };
 
-export type MortgageResult = {
-  housePriceToday: number;
-  totalPaidToday: number;
-  remainingToday: number;
-  inflationGain: number;
-  totalPaidNominal: number;
-  remainingNominal: number;
-};
-
 /**
- * Adjusts a past nominal amount to today's real value using CPI.
- * realValue = nominalValue * (currentCpi / cpiAtTime)
- */
-function toTodayValue(nominal: number, cpiAtTime: number, currentCpi: number): number {
-  if (cpiAtTime <= 0) return 0;
-  return nominal * (currentCpi / cpiAtTime);
-}
-
-/**
- * Calculates the inflation-adjusted remaining mortgage balance.
+ * Calculates the inflation- and VAT-adjusted remaining mortgage balance.
  *
- * Logic:
- *   - Convert the original house price to today's money using CPI.
- *   - Convert each past payment to today's money using the CPI at the time of that payment.
- *   - Remaining = house price today − sum of all past payments in today's money.
- *   - Inflation gain = what was actually paid in nominal − what those payments are worth today.
+ * When VAT rates are equal (or both 0), the formula degrades to the pure CPI-only calculation.
  */
-export function calculateMortgage(input: MortgageInput): MortgageResult {
-  const { housePrice, baseCpi, currentCpi, payments } = input;
+export function calculateMortgage(props: CalculateMortgageProps): MortgageResult {
+  const { housePrice, baseCpi, currentCpi, vatAtPurchase, vatToday, payments } = props;
 
-  const housePriceToday = toTodayValue(housePrice, baseCpi, currentCpi);
+  const housePriceToday = toTodayValue(housePrice, baseCpi, currentCpi, vatAtPurchase, vatToday);
 
   let totalPaidToday = 0;
   let totalPaidNominal = 0;
+  let totalPaidTodayCpiOnly = 0;
 
   for (const payment of payments) {
     if (payment.pmt > 0 && payment.cpi > 0) {
       totalPaidNominal += payment.pmt;
-      totalPaidToday += toTodayValue(payment.pmt, payment.cpi, currentCpi);
+      totalPaidToday += toTodayValue(payment.pmt, payment.cpi, currentCpi, payment.vat, vatToday);
+      // CPI-only (no VAT adjustment) for comparison
+      totalPaidTodayCpiOnly += payment.pmt * (currentCpi / payment.cpi);
     }
   }
 
   const remainingToday = housePriceToday - totalPaidToday;
   const remainingNominal = housePrice - totalPaidNominal;
-  const inflationGain = totalPaidNominal - totalPaidToday;
+  const inflationGain = totalPaidNominal - totalPaidTodayCpiOnly;
+  const vatGain = totalPaidTodayCpiOnly - totalPaidToday;
 
   return {
     housePriceToday,
     totalPaidToday,
     remainingToday,
     inflationGain,
+    vatGain,
     totalPaidNominal,
     remainingNominal,
   };

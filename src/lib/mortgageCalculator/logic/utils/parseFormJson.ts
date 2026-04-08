@@ -1,42 +1,4 @@
-import type { DateValue } from '@ark-ui/react/date-picker';
-
-export type SerializedPayment = {
-  date: string | null;
-  pmt: number;
-  cpi: number;
-  cpiAutoFilled: boolean;
-};
-
-export type SerializedFormState = {
-  version: 1;
-  housePrice: string;
-  purchaseDateIso: string | null;
-  baseCpi: string;
-  baseCpiAutoFilled?: boolean;
-  currentCpi: string;
-  payments: SerializedPayment[];
-};
-
-/** Converts a DateValue array to an ISO date string "YYYY-MM-DD", or null if empty. */
-export function serializeDate(date: DateValue[] | undefined): string | null {
-  if (!date || date.length === 0) return null;
-  const d = date[0];
-  if (!d) return null;
-  const month = String(d.month).padStart(2, '0');
-  const day = String(d.day).padStart(2, '0');
-  return `${d.year}-${month}-${day}`;
-}
-
-export function downloadFormAsJson(state: SerializedFormState, filename = 'mortgage-data.json'): void {
-  const json = JSON.stringify(state, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
+import type { SerializedFormState, SerializedPayment } from '../../types';
 
 export function parseFormJson(raw: unknown): SerializedFormState {
   if (typeof raw !== 'object' || raw === null) throw new Error('Invalid file: expected a JSON object.');
@@ -55,13 +17,13 @@ export function parseFormJson(raw: unknown): SerializedFormState {
     if (typeof item !== 'object' || item === null) throw new Error(`Payment[${i}] is not an object.`);
 
     const p = item as Record<string, unknown>;
-    const date = typeof p.date === 'string' ? p.date : null;
 
     return {
-      date,
+      date: typeof p.date === 'string' ? p.date : null,
       pmt: typeof p.pmt === 'number' ? p.pmt : 0,
       cpi: typeof p.cpi === 'number' ? p.cpi : 0,
       cpiAutoFilled: Boolean(p.cpiAutoFilled),
+      vat: typeof p.vat === 'number' ? p.vat : 0,
     };
   });
 
@@ -72,6 +34,8 @@ export function parseFormJson(raw: unknown): SerializedFormState {
     baseCpi: typeof obj.baseCpi === 'string' ? obj.baseCpi : '',
     baseCpiAutoFilled: Boolean(obj.baseCpiAutoFilled),
     currentCpi: obj.currentCpi as string,
+    vatAtPurchase: typeof obj.vatAtPurchase === 'string' ? obj.vatAtPurchase : '',
+    vatToday: typeof obj.vatToday === 'string' ? obj.vatToday : '',
     payments,
   };
 }

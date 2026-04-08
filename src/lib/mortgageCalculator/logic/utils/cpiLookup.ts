@@ -1,4 +1,4 @@
-import cpiData from '../../data/cpiData.json';
+import cpiData from '../../../../data/cpiData.json';
 
 const cpiValues: Record<string, number> = cpiData.values as Record<string, number>;
 
