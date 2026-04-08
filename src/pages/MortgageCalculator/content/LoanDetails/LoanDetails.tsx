@@ -1,9 +1,10 @@
 import Input from '@src/components/controls/Input';
 import DatePicker from '@src/components/DatePicker';
+import InputCpi from '../InputCpi';
 import type { DateValue } from '@ark-ui/react';
 
 const INPUT_CLASS =
-  'bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500';
+  'bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500';
 
 type LoanDetailsProps = {
   housePrice: string;
@@ -65,25 +66,13 @@ export default function LoanDetails(props: LoanDetailsProps) {
         {/* Base CPI — auto-filled from purchase date */}
         <div className='flex flex-col gap-1.5'>
           <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>CPI at Purchase Date</div>
-          <div className='relative'>
-            <Input
-              initialValue={baseCpi}
-              value={baseCpi}
-              onChange={(v) => {
-                setBaseCpi(v);
-                setBaseCpiAutoFilled(false);
-              }}
-              placeholder={purchaseDate.length > 0 ? 'No data — enter manually' : 'e.g. 100'}
-              className={`bg-slate-900 border rounded-lg px-3 py-2.5 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                baseCpiAutoFilled ? 'border-emerald-600/60 text-emerald-300' : 'border-slate-600 text-slate-100'
-              }`}
-            />
-            {baseCpiAutoFilled && (
-              <span className='absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-emerald-500 pointer-events-none'>
-                auto
-              </span>
-            )}
-          </div>
+          <InputCpi
+            value={baseCpi}
+            onChange={setBaseCpi}
+            isAutoFilled={baseCpiAutoFilled}
+            onManualEdit={() => setBaseCpiAutoFilled(false)}
+            placeholder={purchaseDate.length > 0 ? 'No data — enter manually' : 'e.g. 101.2'}
+          />
         </div>
 
         <div className='flex flex-col gap-1.5'>

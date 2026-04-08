@@ -1,5 +1,6 @@
 import Input from '@src/components/controls/Input';
 import DatePicker from '@src/components/DatePicker';
+import InputCpi from '../InputCpi';
 import type { FormRow } from '../../types';
 import type { DateValue } from '@ark-ui/react';
 
@@ -31,24 +32,12 @@ export default function PaymentRow(props: PaymentRowProps) {
         className={INPUT_CLASS}
       />
 
-      <div className='relative'>
-        <Input
-          initialValue={row.cpi === 0 ? '' : String(row.cpi)}
-          value={row.cpi === 0 ? '' : String(row.cpi)}
-          onChange={(v) => {
-            updateRow(row.id, 'cpi', v);
-          }}
-          placeholder={row.date.length > 0 ? 'No data' : 'e.g. 101.2'}
-          className={`bg-slate-900 border rounded-lg px-3 py-2 text-sm placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            row.cpiAutoFilled ? 'border-emerald-600/60 text-emerald-300' : 'border-slate-600 text-slate-100'
-          }`}
-        />
-        {row.cpiAutoFilled && (
-          <span className='absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-emerald-500 pointer-events-none'>
-            auto
-          </span>
-        )}
-      </div>
+      <InputCpi
+        value={row.cpi === 0 ? '' : String(row.cpi)}
+        onChange={(newCpiValue) => updateRow(row.id, 'cpi', newCpiValue)}
+        isAutoFilled={row.cpiAutoFilled}
+        placeholder={row.date.length > 0 ? 'No data' : 'e.g. 101.2'}
+      />
 
       <Input
         initialValue={row.vat === 0 ? '' : String(row.vat)}
