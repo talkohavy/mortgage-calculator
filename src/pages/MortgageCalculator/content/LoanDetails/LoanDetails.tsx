@@ -1,4 +1,4 @@
-import { CPI_BASE_YEARS, lookupCpi } from '../../../../lib/mortgageCalculator';
+import { CPI_BASE_YEARS, lookupCpi } from '@src/lib/mortgageCalculator';
 
 type LoanDetailsProps = {
   housePrice: string;

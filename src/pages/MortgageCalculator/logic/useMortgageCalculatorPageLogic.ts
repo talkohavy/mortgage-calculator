@@ -7,7 +7,7 @@ import {
   parseFormJson,
   serializeDate,
   type MortgageResult,
-} from '../../../lib/mortgageCalculator';
+} from '@src/lib/mortgageCalculator';
 import { DEFAULT_ROWS } from './constants';
 import { isoToDateValue } from './utils/isoToDateValue';
 import { nextId } from './utils/nextId';
