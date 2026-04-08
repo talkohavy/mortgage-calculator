@@ -34,7 +34,6 @@ export default function PaymentRow(props: PaymentRowProps) {
         <input
           type='number'
           min={0}
-          readOnly={row.cpiAutoFilled}
           value={row.cpi === 0 ? '' : row.cpi}
           onChange={(e) => {
             updateRow(row.id, 'cpi', e.target.value);
@@ -44,7 +43,7 @@ export default function PaymentRow(props: PaymentRowProps) {
           title={row.cpiAutoFilled ? 'Auto-filled from CPI data file' : undefined}
           className={`bg-slate-900 border rounded-lg px-3 py-2 text-sm placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
             row.cpiAutoFilled
-              ? 'border-emerald-600/60 text-emerald-300 cursor-default'
+              ? 'border-emerald-600/60 text-emerald-300'
               : 'border-slate-600 text-slate-100'
           }`}
         />

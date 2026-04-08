@@ -69,7 +69,6 @@ export default function LoanDetails(props: LoanDetailsProps) {
             <input
               type='number'
               min={0}
-              readOnly={baseCpiAutoFilled}
               value={baseCpi}
               onChange={(e) => {
                 setBaseCpi(e.target.value);
@@ -80,7 +79,7 @@ export default function LoanDetails(props: LoanDetailsProps) {
               title={baseCpiAutoFilled ? 'Auto-filled from CPI data file' : undefined}
               className={`w-full bg-slate-900 border rounded-lg px-3 py-2.5 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 baseCpiAutoFilled
-                  ? 'border-emerald-600/60 text-emerald-300 cursor-default'
+                  ? 'border-emerald-600/60 text-emerald-300'
                   : 'border-slate-600 text-slate-100'
               }`}
             />
