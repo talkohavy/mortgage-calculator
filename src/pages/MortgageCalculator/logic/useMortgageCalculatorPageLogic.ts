@@ -19,6 +19,8 @@ export function useMortgageCalculatorPageLogic() {
   const [baseCpi, setBaseCpi] = useState<string>('');
   const [baseCpiAutoFilled, setBaseCpiAutoFilled] = useState<boolean>(false);
   const [currentCpi, setCurrentCpi] = useState<string>('');
+  const [vatAtPurchase, setVatAtPurchase] = useState<string>('');
+  const [vatToday, setVatToday] = useState<string>('');
   const [rows, setRows] = useState<FormRow[]>(DEFAULT_ROWS);
   const [result, setResult] = useState<MortgageResult | null>(null);
   const [error, setError] = useState<string>('');
@@ -44,9 +46,10 @@ export function useMortgageCalculatorPageLogic() {
   );
 
   const addRow = useCallback(() => {
-    setRows((prev) => [...prev, { id: nextId(), date: [], pmt: 0, cpi: 0, cpiAutoFilled: false }]);
+    const vatDefault = Number.parseFloat(vatAtPurchase) || 0;
+    setRows((prev) => [...prev, { id: nextId(), date: [], pmt: 0, cpi: 0, cpiAutoFilled: false, vat: vatDefault }]);
     setTimeout(() => tableEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
-  }, []);
+  }, [vatAtPurchase]);
 
   const removeRow = useCallback((id: number) => {
     setRows((prev) => (prev.length > 1 ? prev.filter((r) => r.id !== id) : prev));
@@ -71,7 +74,7 @@ export function useMortgageCalculatorPageLogic() {
     setResult(null);
   }, []);
 
-  const updateRow = useCallback((id: number, field: 'pmt' | 'cpi', raw: string) => {
+  const updateRow = useCallback((id: number, field: 'pmt' | 'cpi' | 'vat', raw: string) => {
     setRows((prev) =>
       prev.map((r) => {
         if (r.id !== id) return r;
@@ -102,15 +105,27 @@ export function useMortgageCalculatorPageLogic() {
       return;
     }
 
-    const payments = rows.map(({ date, pmt, cpi }) => ({
+    const vatPurchaseNum = Number.parseFloat(vatAtPurchase) || 0;
+    const vatTodayNum = Number.parseFloat(vatToday) || 0;
+
+    const payments = rows.map(({ date, pmt, cpi, vat }) => ({
       label: date[0] ? `${date[0].month}/${date[0].year}` : '',
       pmt,
       cpi,
+      vat,
     }));
 
-    const res = calculateMortgage({ housePrice: price, baseCpi: base, currentCpi: current, payments });
+    const res = calculateMortgage({
+      housePrice: price,
+      baseCpi: base,
+      currentCpi: current,
+      vatAtPurchase: vatPurchaseNum,
+      vatToday: vatTodayNum,
+      payments,
+    });
+
     setResult(res);
-  }, [housePrice, baseCpi, currentCpi, rows]);
+  }, [housePrice, baseCpi, currentCpi, vatAtPurchase, vatToday, rows]);
 
   const handleReset = useCallback(() => {
     setResult(null);
@@ -124,14 +139,17 @@ export function useMortgageCalculatorPageLogic() {
       purchaseDateIso: serializeDate(purchaseDate),
       baseCpi,
       currentCpi,
-      payments: rows.map(({ date, pmt, cpi, cpiAutoFilled }) => ({
+      vatAtPurchase,
+      vatToday,
+      payments: rows.map(({ date, pmt, cpi, cpiAutoFilled, vat }) => ({
         date: serializeDate(date),
         pmt,
         cpi,
         cpiAutoFilled,
+        vat,
       })),
     });
-  }, [housePrice, purchaseDate, baseCpi, currentCpi, rows]);
+  }, [housePrice, purchaseDate, baseCpi, currentCpi, vatAtPurchase, vatToday, rows]);
 
   const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -147,6 +165,8 @@ export function useMortgageCalculatorPageLogic() {
         setBaseCpiAutoFilled(Boolean(state.baseCpiAutoFilled));
         setPurchaseDateState(isoToDateValue(state.purchaseDateIso ?? null));
         setCurrentCpi(state.currentCpi);
+        setVatAtPurchase(state.vatAtPurchase ?? '');
+        setVatToday(state.vatToday ?? '');
         setRows(
           state.payments.map((p) => ({
             id: nextId(),
@@ -154,6 +174,7 @@ export function useMortgageCalculatorPageLogic() {
             pmt: p.pmt,
             cpi: p.cpi,
             cpiAutoFilled: p.cpiAutoFilled,
+            vat: p.vat ?? 0,
           })),
         );
         setResult(null);
@@ -176,11 +197,15 @@ export function useMortgageCalculatorPageLogic() {
     baseCpi,
     baseCpiAutoFilled,
     currentCpi,
+    vatAtPurchase,
+    vatToday,
     setBaseCpi,
     setBaseCpiAutoFilled,
     setResult,
     setHousePrice,
     setCurrentCpi,
+    setVatAtPurchase,
+    setVatToday,
     handlePurchaseDateChange,
     rows,
     updateRow,

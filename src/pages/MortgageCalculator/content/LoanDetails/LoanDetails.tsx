@@ -1,5 +1,9 @@
+import Input from '@src/components/controls/Input';
 import DatePicker from '@src/components/DatePicker';
 import type { DateValue } from '@ark-ui/react';
+
+const INPUT_CLASS =
+  'bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500';
 
 type LoanDetailsProps = {
   housePrice: string;
@@ -7,10 +11,14 @@ type LoanDetailsProps = {
   baseCpi: string;
   baseCpiAutoFilled: boolean;
   currentCpi: string;
+  vatAtPurchase: string;
+  vatToday: string;
   setHousePrice: (val: string) => void;
   setBaseCpi: (val: string) => void;
   setBaseCpiAutoFilled: (val: boolean) => void;
   setCurrentCpi: (val: string) => void;
+  setVatAtPurchase: (val: string) => void;
+  setVatToday: (val: string) => void;
   handlePurchaseDateChange: (date: DateValue[]) => void;
   setResult: (val: any) => void;
 };
@@ -22,10 +30,14 @@ export default function LoanDetails(props: LoanDetailsProps) {
     baseCpi,
     baseCpiAutoFilled,
     currentCpi,
+    vatAtPurchase,
+    vatToday,
     setHousePrice,
     setBaseCpi,
     setBaseCpiAutoFilled,
     setCurrentCpi,
+    setVatAtPurchase,
+    setVatToday,
     handlePurchaseDateChange,
     setResult,
   } = props;
@@ -34,48 +46,36 @@ export default function LoanDetails(props: LoanDetailsProps) {
     <section className='bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6 flex flex-col gap-5'>
       <h2 className='text-lg font-semibold text-slate-200'>Loan Details</h2>
 
+      {/* Row 1: price + dates + CPI */}
       <div className='grid grid-cols-1 sm:grid-cols-4 gap-4'>
-        {/* House Price */}
         <div className='flex flex-col gap-1.5'>
           <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>Original House Price ($)</div>
-          <input
-            type='number'
-            min={0}
-            value={housePrice}
-            onChange={(e) => {
-              setHousePrice(e.target.value);
-              setResult(null);
-            }}
+          <Input
+            initialValue={housePrice}
+            onChange={setHousePrice}
             placeholder='e.g. 5000000'
-            className='bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
+            className={INPUT_CLASS}
           />
         </div>
 
-        {/* Purchase Date → auto-fills base CPI */}
         <div className='flex flex-col gap-1.5'>
           <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>Date of Purchase</div>
           <DatePicker value={purchaseDate} setValue={handlePurchaseDateChange} />
         </div>
 
-        {/* Base CPI — auto-filled from purchase date, manually editable as fallback */}
+        {/* Base CPI — auto-filled from purchase date */}
         <div className='flex flex-col gap-1.5'>
           <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>CPI at Purchase Date</div>
           <div className='relative'>
-            <input
-              type='number'
-              min={0}
-              value={baseCpi}
-              onChange={(e) => {
-                setBaseCpi(e.target.value);
+            <Input
+              initialValue={baseCpi}
+              onChange={(v) => {
+                setBaseCpi(v);
                 setBaseCpiAutoFilled(false);
-                setResult(null);
               }}
               placeholder={purchaseDate.length > 0 ? 'No data — enter manually' : 'e.g. 100'}
-              title={baseCpiAutoFilled ? 'Auto-filled from CPI data file' : undefined}
-              className={`w-full bg-slate-900 border rounded-lg px-3 py-2.5 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                baseCpiAutoFilled
-                  ? 'border-emerald-600/60 text-emerald-300'
-                  : 'border-slate-600 text-slate-100'
+              className={`bg-slate-900 border rounded-lg px-3 py-2.5 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                baseCpiAutoFilled ? 'border-emerald-600/60 text-emerald-300' : 'border-slate-600 text-slate-100'
               }`}
             />
             {baseCpiAutoFilled && (
@@ -86,19 +86,41 @@ export default function LoanDetails(props: LoanDetailsProps) {
           </div>
         </div>
 
-        {/* Current CPI */}
         <div className='flex flex-col gap-1.5'>
           <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>Current CPI (Today)</div>
-          <input
-            type='number'
-            min={0}
-            value={currentCpi}
-            onChange={(e) => {
-              setCurrentCpi(e.target.value);
+          <Input initialValue={currentCpi} onChange={setCurrentCpi} placeholder='e.g. 141' className={INPUT_CLASS} />
+        </div>
+      </div>
+
+      {/* Row 2: VAT — optional, leave blank to skip VAT adjustment */}
+      <div className='grid grid-cols-1 sm:grid-cols-4 gap-4 pt-1 border-t border-slate-700/40'>
+        <div className='sm:col-span-2 flex flex-col gap-1'>
+          <div className='text-xs font-medium text-slate-500 uppercase tracking-wider'>
+            VAT Adjustment
+            <span className='ml-2 normal-case font-normal text-slate-600'>(optional — leave blank to skip)</span>
+          </div>
+        </div>
+
+        <div className='flex flex-col gap-1.5'>
+          <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>VAT at Purchase (%)</div>
+          <Input
+            initialValue={vatAtPurchase}
+            onChange={setVatAtPurchase}
+            placeholder='e.g. 17'
+            className={INPUT_CLASS}
+          />
+        </div>
+
+        <div className='flex flex-col gap-1.5'>
+          <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>Current VAT (%)</div>
+          <Input
+            initialValue={vatToday}
+            onChange={(v) => {
+              setVatToday(v);
               setResult(null);
             }}
-            placeholder='e.g. 141'
-            className='bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
+            placeholder='e.g. 18'
+            className={INPUT_CLASS}
           />
         </div>
       </div>

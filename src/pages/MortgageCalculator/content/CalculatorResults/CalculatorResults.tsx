@@ -55,8 +55,24 @@ export default function CalculatorResults(props: CalculatorResultsProps) {
             </span>{' '}
             in real purchasing power compared to when they were made.
             {result.inflationGain > 0
-              ? ' Inflation worked in your favour — each dollar you paid was worth more back then than it is today.'
+              ? ' Inflation worked in your favour — each shekel you paid was worth more back then than today.'
               : ' Deflation worked against you.'}
+          </span>
+        </div>
+      )}
+
+      {result.vatGain !== 0 && (
+        <div className='bg-slate-800/40 border border-slate-700/40 rounded-xl p-4 text-sm text-slate-400 flex flex-col gap-1'>
+          <span className='font-medium text-slate-300'>VAT Change Effect</span>
+          <span>
+            The VAT change {result.vatGain > 0 ? 'reduced' : 'increased'} the real value of your past payments by{' '}
+            <span className={result.vatGain > 0 ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}>
+              {formatUSD(Math.abs(result.vatGain))}
+            </span>
+            .
+            {result.vatGain < 0
+              ? " A VAT increase means your remaining balance is higher in today's terms."
+              : ' A VAT decrease worked in your favour.'}
           </span>
         </div>
       )}

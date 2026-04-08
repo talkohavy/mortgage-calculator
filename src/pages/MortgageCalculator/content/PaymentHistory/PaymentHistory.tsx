@@ -6,7 +6,7 @@ import type { DateValue } from '@ark-ui/react';
 type PaymentHistoryProps = {
   rows: FormRow[];
   updateRowDate: (id: number, date: DateValue[]) => void;
-  updateRow: (id: number, field: 'pmt' | 'cpi', raw: string) => void;
+  updateRow: (id: number, field: 'pmt' | 'cpi' | 'vat', raw: string) => void;
   setResult: (result: any) => void;
   removeRow: (id: number) => void;
   addRow: () => void;
@@ -30,10 +30,11 @@ export default function PaymentHistory(props: PaymentHistoryProps) {
       </div>
 
       {/* Table Header */}
-      <div className='grid grid-cols-[1.2fr_1fr_1fr_auto] gap-3 px-1'>
+      <div className='grid grid-cols-[1.2fr_1fr_1fr_0.55fr_auto] gap-3 px-1'>
         <span className='text-[11px] font-semibold uppercase tracking-wider text-slate-500'>Payment Date</span>
         <span className='text-[11px] font-semibold uppercase tracking-wider text-slate-500'>PMT Amount ($)</span>
         <span className='text-[11px] font-semibold uppercase tracking-wider text-slate-500'>CPI That Month</span>
+        <span className='text-[11px] font-semibold uppercase tracking-wider text-slate-500'>VAT (%)</span>
         <span className='w-8' />
       </div>
 
