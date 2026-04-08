@@ -12,11 +12,8 @@ export default function MortgageCalculatorPage() {
     handleImport,
     handleExport,
     housePrice,
-    housePriceId,
     baseCpi,
-    baseCpiId,
     currentCpi,
-    currentCpiId,
     setBaseCpi,
     setResult,
     setHousePrice,
@@ -42,11 +39,8 @@ export default function MortgageCalculatorPage() {
         <Header importFileRef={importFileRef} handleImport={handleImport} handleExport={handleExport} />
 
         <LoanDetails
-          housePriceId={housePriceId}
           housePrice={housePrice}
-          baseCpiId={baseCpiId}
           baseCpi={baseCpi}
-          currentCpiId={currentCpiId}
           currentCpi={currentCpi}
           cpiBaseYear={cpiBaseYear}
           setHousePrice={setHousePrice}

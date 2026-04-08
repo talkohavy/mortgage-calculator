@@ -1,4 +1,4 @@
-import { useCallback, useId, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   calculateMortgage,
   CPI_BASE_YEARS,
@@ -15,10 +15,6 @@ import type { FormRow } from '../types';
 import type { DateValue } from '@ark-ui/react';
 
 export function useMortgageCalculatorPageLogic() {
-  const housePriceId = useId();
-  const baseCpiId = useId();
-  const currentCpiId = useId();
-
   const [housePrice, setHousePrice] = useState<string>('5000000');
   const [baseCpi, setBaseCpi] = useState<string>('100');
   const [currentCpi, setCurrentCpi] = useState<string>('');
@@ -157,11 +153,8 @@ export function useMortgageCalculatorPageLogic() {
     handleImport,
     handleExport,
     housePrice,
-    housePriceId,
     baseCpi,
-    baseCpiId,
     currentCpi,
-    currentCpiId,
     setBaseCpi,
     setResult,
     setHousePrice,

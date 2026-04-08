@@ -1,11 +1,8 @@
 import { CPI_BASE_YEARS, lookupCpi } from '../../../../lib/mortgageCalculator';
 
 type LoanDetailsProps = {
-  housePriceId: string;
   housePrice: string;
-  baseCpiId: string;
   baseCpi: string;
-  currentCpiId: string;
   currentCpi: string;
   cpiBaseYear: number;
   setHousePrice: (val: string) => void;
@@ -18,11 +15,8 @@ type LoanDetailsProps = {
 
 export default function LoanDetails(props: LoanDetailsProps) {
   const {
-    housePriceId,
     housePrice,
-    baseCpiId,
     baseCpi,
-    currentCpiId,
     currentCpi,
     cpiBaseYear,
     setHousePrice,
@@ -39,12 +33,9 @@ export default function LoanDetails(props: LoanDetailsProps) {
 
       <div className='grid grid-cols-1 sm:grid-cols-4 gap-4'>
         <div className='flex flex-col gap-1.5'>
-          <label htmlFor={housePriceId} className='text-xs font-medium text-slate-400 uppercase tracking-wider'>
-            Original House Price ($)
-          </label>
+          <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>Original House Price ($)</div>
 
           <input
-            id={housePriceId}
             type='number'
             min={0}
             value={housePrice}
@@ -58,12 +49,9 @@ export default function LoanDetails(props: LoanDetailsProps) {
         </div>
 
         <div className='flex flex-col gap-1.5'>
-          <label htmlFor={baseCpiId} className='text-xs font-medium text-slate-400 uppercase tracking-wider'>
-            CPI at Purchase Date
-          </label>
+          <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>CPI at Purchase Date</div>
 
           <input
-            id={baseCpiId}
             type='number'
             min={0}
             value={baseCpi}
@@ -77,12 +65,9 @@ export default function LoanDetails(props: LoanDetailsProps) {
         </div>
 
         <div className='flex flex-col gap-1.5'>
-          <label htmlFor={currentCpiId} className='text-xs font-medium text-slate-400 uppercase tracking-wider'>
-            Current CPI (Today)
-          </label>
+          <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>Current CPI (Today)</div>
 
           <input
-            id={currentCpiId}
             type='number'
             min={0}
             value={currentCpi}
@@ -96,11 +81,9 @@ export default function LoanDetails(props: LoanDetailsProps) {
         </div>
 
         <div className='flex flex-col gap-1.5'>
-          <label htmlFor='cpi-base-year' className='text-xs font-medium text-slate-400 uppercase tracking-wider'>
-            CPI Base Year
-          </label>
+          <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>CPI Base Year</div>
+
           <select
-            id='cpi-base-year'
             value={cpiBaseYear}
             onChange={(e) => {
               const newBaseYear = Number(e.target.value);
