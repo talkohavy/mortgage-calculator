@@ -31,7 +31,7 @@ export default function CalculatorResults(props: CalculatorResultsProps) {
 
         <ResultCard
           label='Remaining to Pay'
-          value={formatUSD(Math.max(0, result.remainingToday))}
+          value={formatUSD(result.remainingToday)}
           color={
             result.remainingToday <= 0 ? 'border-emerald-600 text-emerald-300' : 'border-amber-600/60 text-amber-300'
           }
