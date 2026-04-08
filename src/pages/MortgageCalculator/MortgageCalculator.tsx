@@ -1,13 +1,20 @@
 import { useCallback, useId, useRef, useState } from 'react';
+import DatePicker from '../../components/DatePicker';
 import { calculateMortgage } from '../../lib/mortgageCalculator';
-import type { MortgageResult, PaymentRow } from '../../lib/mortgageCalculator';
+import type { MortgageResult } from '../../lib/mortgageCalculator';
+import type { DateValue } from '@ark-ui/react/date-picker';
 
-type FormRow = PaymentRow & { id: number };
+type FormRow = {
+  id: number;
+  date: DateValue[];
+  pmt: number;
+  cpi: number;
+};
 
 const DEFAULT_ROWS: FormRow[] = [
-  { id: 1, label: 'Feb 2000', pmt: 0, cpi: 0 },
-  { id: 2, label: 'Mar 2000', pmt: 0, cpi: 0 },
-  { id: 3, label: 'Apr 2000', pmt: 0, cpi: 0 },
+  { id: 1, date: [], pmt: 0, cpi: 0 },
+  { id: 2, date: [], pmt: 0, cpi: 0 },
+  { id: 3, date: [], pmt: 0, cpi: 0 },
 ];
 
 function formatUSD(value: number): string {
@@ -59,7 +66,7 @@ export default function MortgageCalculatorPage() {
   const tableEndRef = useRef<HTMLDivElement>(null);
 
   const addRow = useCallback(() => {
-    setRows((prev) => [...prev, { id: nextId(), label: '', pmt: 0, cpi: 0 }]);
+    setRows((prev) => [...prev, { id: nextId(), date: [], pmt: 0, cpi: 0 }]);
     setTimeout(() => tableEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
   }, []);
 
@@ -67,11 +74,15 @@ export default function MortgageCalculatorPage() {
     setRows((prev) => (prev.length > 1 ? prev.filter((r) => r.id !== id) : prev));
   }, []);
 
-  const updateRow = useCallback((id: number, field: keyof Omit<FormRow, 'id'>, raw: string) => {
+  const updateRowDate = useCallback((id: number, date: DateValue[]) => {
+    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, date } : r)));
+    setResult(null);
+  }, []);
+
+  const updateRow = useCallback((id: number, field: 'pmt' | 'cpi', raw: string) => {
     setRows((prev) =>
       prev.map((r) => {
         if (r.id !== id) return r;
-        if (field === 'label') return { ...r, label: raw };
         const num = Number.parseFloat(raw);
         return { ...r, [field]: Number.isNaN(num) ? 0 : num };
       }),
@@ -88,7 +99,11 @@ export default function MortgageCalculatorPage() {
     if (!base || base <= 0) { setError('Please enter a valid base CPI.'); return; }
     if (!current || current <= 0) { setError('Please enter a valid current CPI.'); return; }
 
-    const payments = rows.map(({ label, pmt, cpi }) => ({ label, pmt, cpi }));
+    const payments = rows.map(({ date, pmt, cpi }) => ({
+      label: date[0] ? `${date[0].month}/${date[0].year}` : '',
+      pmt,
+      cpi,
+    }));
 
     const res = calculateMortgage({ housePrice: price, baseCpi: base, currentCpi: current, payments });
     setResult(res);
@@ -176,8 +191,8 @@ export default function MortgageCalculatorPage() {
           </div>
 
           {/* Table Header */}
-          <div className='grid grid-cols-[1fr_1fr_1fr_auto] gap-3 px-1'>
-            <span className='text-[11px] font-semibold uppercase tracking-wider text-slate-500'>Month / Label</span>
+          <div className='grid grid-cols-[1.2fr_1fr_1fr_auto] gap-3 px-1'>
+            <span className='text-[11px] font-semibold uppercase tracking-wider text-slate-500'>Payment Date</span>
             <span className='text-[11px] font-semibold uppercase tracking-wider text-slate-500'>PMT Amount ($)</span>
             <span className='text-[11px] font-semibold uppercase tracking-wider text-slate-500'>CPI That Month</span>
             <span className='w-8' />
@@ -185,14 +200,11 @@ export default function MortgageCalculatorPage() {
 
           {/* Rows */}
           <div className='flex flex-col gap-2 max-h-105 overflow-y-auto pr-1'>
-            {rows.map((row, index) => (
-              <div key={row.id} className='grid grid-cols-[1fr_1fr_1fr_auto] gap-3 items-center group'>
-                <input
-                  type='text'
-                  value={row.label}
-                  onChange={(e) => { updateRow(row.id, 'label', e.target.value); setResult(null); }}
-                  placeholder={`Month ${index + 1}`}
-                  className='bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500'
+            {rows.map((row) => (
+              <div key={row.id} className='grid grid-cols-[1.2fr_1fr_1fr_auto] gap-3 items-center group'>
+                <DatePicker
+                  value={row.date}
+                  setValue={(date: DateValue[]) => updateRowDate(row.id, date)}
                 />
                 <input
                   type='number'
