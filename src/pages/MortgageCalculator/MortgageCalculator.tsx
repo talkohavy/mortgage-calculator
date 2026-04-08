@@ -2,6 +2,7 @@ import { useCallback, useId, useRef, useState } from 'react';
 import { parseDate } from '@ark-ui/react/date-picker';
 import DatePicker from '../../components/DatePicker';
 import {
+  CPI_BASE_YEARS,
   calculateMortgage,
   downloadFormAsJson,
   lookupCpi,
@@ -72,6 +73,7 @@ export default function MortgageCalculatorPage() {
   const [housePrice, setHousePrice] = useState<string>('5000000');
   const [baseCpi, setBaseCpi] = useState<string>('100');
   const [currentCpi, setCurrentCpi] = useState<string>('');
+  const [cpiBaseYear, setCpiBaseYear] = useState<number>(CPI_BASE_YEARS.at(-1) ?? 2024);
   const [rows, setRows] = useState<FormRow[]>(DEFAULT_ROWS);
   const [result, setResult] = useState<MortgageResult | null>(null);
   const [error, setError] = useState<string>('');
@@ -93,7 +95,7 @@ export default function MortgageCalculatorPage() {
       prev.map((r) => {
         if (r.id !== id) return r;
         const d = date[0];
-        const found = d ? lookupCpi(d.year, d.month) : null;
+        const found = d ? lookupCpi(d.year, d.month, cpiBaseYear) : null;
         return {
           ...r,
           date,
@@ -103,7 +105,7 @@ export default function MortgageCalculatorPage() {
       }),
     );
     setResult(null);
-  }, []);
+  }, [cpiBaseYear]);
 
   const updateRow = useCallback((id: number, field: 'pmt' | 'cpi', raw: string) => {
     setRows((prev) =>
@@ -252,7 +254,7 @@ export default function MortgageCalculatorPage() {
         <section className='bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6 flex flex-col gap-5'>
           <h2 className='text-lg font-semibold text-slate-200'>Loan Details</h2>
 
-          <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
+          <div className='grid grid-cols-1 sm:grid-cols-4 gap-4'>
             <div className='flex flex-col gap-1.5'>
               <label htmlFor={housePriceId} className='text-xs font-medium text-slate-400 uppercase tracking-wider'>
                 Original House Price ($)
@@ -305,6 +307,25 @@ export default function MortgageCalculatorPage() {
                 placeholder='e.g. 310'
                 className='bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
               />
+            </div>
+
+            <div className='flex flex-col gap-1.5'>
+              <label htmlFor='cpi-base-year' className='text-xs font-medium text-slate-400 uppercase tracking-wider'>
+                CPI Base Year
+              </label>
+              <select id='cpi-base-year'
+                value={cpiBaseYear}
+                onChange={(e) => {
+                  setCpiBaseYear(Number(e.target.value));
+                  setRows((prev) => prev.map((r) => ({ ...r, cpi: 0, cpiAutoFilled: false })));
+                  setResult(null);
+                }}
+                className='bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500'
+              >
+                {CPI_BASE_YEARS.map((y) => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
             </div>
           </div>
         </section>
