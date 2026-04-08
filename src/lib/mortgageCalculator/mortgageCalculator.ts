@@ -1,5 +1,6 @@
+import { vatFactor as calcVatFactor } from './logic/utils/vatFactor';
 import { toTodayValue } from './logic/utils/toTodayValue';
-import type { MortgageResult, PaymentRow } from './types';
+import type { MortgageResult, PaymentBreakdownRow, PaymentRow } from './types';
 
 export type CalculateMortgageProps = {
   housePrice: number;
@@ -25,13 +26,25 @@ export function calculateMortgage(props: CalculateMortgageProps): MortgageResult
   let totalPaidToday = 0;
   let totalPaidNominal = 0;
   let totalPaidTodayCpiOnly = 0;
+  const paymentBreakdown: PaymentBreakdownRow[] = [];
 
   for (const payment of payments) {
     if (payment.pmt > 0 && payment.cpi > 0) {
+      const cpiFactor = currentCpi / payment.cpi;
+      const vf = calcVatFactor(payment.vat, vatToday);
+      const todayValue = toTodayValue(payment.pmt, payment.cpi, currentCpi, payment.vat, vatToday);
+
       totalPaidNominal += payment.pmt;
-      totalPaidToday += toTodayValue(payment.pmt, payment.cpi, currentCpi, payment.vat, vatToday);
-      // CPI-only (no VAT adjustment) for comparison
-      totalPaidTodayCpiOnly += payment.pmt * (currentCpi / payment.cpi);
+      totalPaidToday += todayValue;
+      totalPaidTodayCpiOnly += payment.pmt * cpiFactor;
+
+      paymentBreakdown.push({
+        label: payment.label,
+        nominal: payment.pmt,
+        cpiFactor,
+        vatFactor: vf,
+        todayValue,
+      });
     }
   }
 
@@ -48,5 +61,6 @@ export function calculateMortgage(props: CalculateMortgageProps): MortgageResult
     vatGain,
     totalPaidNominal,
     remainingNominal,
+    paymentBreakdown,
   };
 }

@@ -43,27 +43,64 @@ export default function CalculatorResults(props: CalculatorResultsProps) {
         />
       </div>
 
-      {/* Calculation breakdown */}
-      <div className='bg-slate-800/40 border border-slate-700/40 rounded-xl p-4 flex flex-col gap-2 font-mono text-sm'>
-        <span className='font-sans text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1'>How we got there</span>
+      {/* Per-payment breakdown table */}
+      {result.paymentBreakdown.length > 0 && (
+        <div className='bg-slate-800/40 border border-slate-700/40 rounded-xl p-4 flex flex-col gap-3'>
+          <span className='text-xs font-semibold uppercase tracking-wider text-slate-500'>How we got there</span>
 
-        <div className='flex justify-between text-slate-300'>
-          <span>House price (today&apos;s money)</span>
-          <span>{formatUSD(result.housePriceToday)}</span>
+          <div className='overflow-x-auto'>
+            <table className='w-full text-sm'>
+              <thead>
+                <tr className='text-[11px] font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-700'>
+                  <th className='text-left pb-2 pr-4'>Payment</th>
+                  <th className='text-right pb-2 pr-4'>Nominal</th>
+                  <th className='text-right pb-2 pr-4'>CPI factor</th>
+                  <th className='text-right pb-2 pr-4'>VAT factor</th>
+                  <th className='text-right pb-2'>Today&apos;s value</th>
+                </tr>
+              </thead>
+              <tbody className='divide-y divide-slate-700/50'>
+                {result.paymentBreakdown.map((row, i) => (
+                  <tr key={i} className='text-slate-300'>
+                    <td className='py-1.5 pr-4 text-slate-400'>{row.label || `#${i + 1}`}</td>
+                    <td className='py-1.5 pr-4 text-right font-mono'>{formatUSD(row.nominal)}</td>
+                    <td className='py-1.5 pr-4 text-right font-mono text-blue-300'>×{row.cpiFactor.toFixed(4)}</td>
+                    <td className='py-1.5 pr-4 text-right font-mono text-purple-300'>
+                      {row.vatFactor === 1 ? <span className='text-slate-600'>—</span> : `×${row.vatFactor.toFixed(4)}`}
+                    </td>
+                    <td className='py-1.5 text-right font-mono text-emerald-300'>{formatUSD(row.todayValue)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className='border-t border-slate-600 font-semibold text-slate-200'>
+                  <td className='pt-2 pr-4'>Total paid</td>
+                  <td className='pt-2 pr-4 text-right font-mono'>{formatUSD(result.totalPaidNominal)}</td>
+                  <td className='pt-2 pr-4' />
+                  <td className='pt-2 pr-4' />
+                  <td className='pt-2 text-right font-mono text-emerald-300'>{formatUSD(result.totalPaidToday)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <div className='border-t border-slate-600 pt-3 flex flex-col gap-1.5 font-mono text-sm'>
+            <div className='flex justify-between text-slate-300'>
+              <span>House price (today&apos;s money)</span>
+              <span>{formatUSD(result.housePriceToday)}</span>
+            </div>
+            <div className='flex justify-between text-emerald-400'>
+              <span>− Total paid (today&apos;s money)</span>
+              <span>− {formatUSD(result.totalPaidToday)}</span>
+            </div>
+            <div className='border-t border-slate-700 my-1' />
+            <div className={`flex justify-between font-semibold ${result.remainingToday <= 0 ? 'text-emerald-300' : 'text-amber-300'}`}>
+              <span>= Remaining to pay</span>
+              <span>{formatUSD(Math.max(0, result.remainingToday))}</span>
+            </div>
+          </div>
         </div>
-
-        <div className='flex justify-between text-emerald-400'>
-          <span>− Total paid (today&apos;s money)</span>
-          <span>− {formatUSD(result.totalPaidToday)}</span>
-        </div>
-
-        <div className='border-t border-slate-600 my-1' />
-
-        <div className={`flex justify-between font-semibold ${result.remainingToday <= 0 ? 'text-emerald-300' : 'text-amber-300'}`}>
-          <span>= Remaining to pay</span>
-          <span>{formatUSD(Math.max(0, result.remainingToday))}</span>
-        </div>
-      </div>
+      )}
 
       {result.inflationGain !== 0 && (
         <div className='bg-slate-800/40 border border-slate-700/40 rounded-xl p-4 text-sm text-slate-400 flex flex-col gap-1'>

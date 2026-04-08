@@ -6,6 +6,14 @@ export type PaymentRow = {
   vat: number;
 };
 
+export type PaymentBreakdownRow = {
+  label: string;
+  nominal: number;
+  cpiFactor: number;
+  vatFactor: number;
+  todayValue: number;
+};
+
 export type MortgageResult = {
   housePriceToday: number;
   totalPaidToday: number;
@@ -14,6 +22,7 @@ export type MortgageResult = {
   vatGain: number;
   totalPaidNominal: number;
   remainingNominal: number;
+  paymentBreakdown: PaymentBreakdownRow[];
 };
 
 export type SerializedFormState = {
