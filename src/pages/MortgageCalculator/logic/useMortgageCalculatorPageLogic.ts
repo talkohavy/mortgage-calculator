@@ -21,6 +21,7 @@ export function useMortgageCalculatorPageLogic() {
   const [currentCpi, setCurrentCpi] = useState<string>('');
   const [vatAtPurchase, setVatAtPurchase] = useState<string>('');
   const [vatToday, setVatToday] = useState<string>('');
+  const [cpiShare, setCpiShare] = useState<string>('100');
   const [rows, setRows] = useState<FormRow[]>(DEFAULT_ROWS);
   const [result, setResult] = useState<MortgageResult | null>(null);
   const [error, setError] = useState<string>('');
@@ -109,6 +110,8 @@ export function useMortgageCalculatorPageLogic() {
 
     const vatPurchaseNum = Number.parseFloat(vatAtPurchase) || 0;
     const vatTodayNum = Number.parseFloat(vatToday) || 0;
+    const cpiShareNum = Number.parseFloat(cpiShare);
+    const effectiveCpiShare = Number.isNaN(cpiShareNum) ? 100 : Math.min(100, Math.max(0, cpiShareNum));
 
     const payments = rows.map(({ date, pmt, cpi, vat }) => ({
       label: date[0] ? `${date[0].month}/${date[0].year}` : '',
@@ -123,11 +126,12 @@ export function useMortgageCalculatorPageLogic() {
       currentCpi: current,
       vatAtPurchase: vatPurchaseNum,
       vatToday: vatTodayNum,
+      cpiShare: effectiveCpiShare,
       payments,
     });
 
     setResult(res);
-  }, [housePrice, baseCpi, currentCpi, vatAtPurchase, vatToday, rows]);
+  }, [housePrice, baseCpi, currentCpi, vatAtPurchase, vatToday, cpiShare, rows]);
 
   const handleReset = useCallback(() => {
     setResult(null);
@@ -143,6 +147,7 @@ export function useMortgageCalculatorPageLogic() {
       currentCpi,
       vatAtPurchase,
       vatToday,
+      cpiShare,
       payments: rows.map(({ date, pmt, cpi, cpiAutoFilled, vat }) => ({
         date: serializeDate(date),
         pmt,
@@ -151,7 +156,7 @@ export function useMortgageCalculatorPageLogic() {
         vat,
       })),
     });
-  }, [housePrice, purchaseDate, baseCpi, currentCpi, vatAtPurchase, vatToday, rows]);
+  }, [housePrice, purchaseDate, baseCpi, currentCpi, vatAtPurchase, vatToday, cpiShare, rows]);
 
   const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -169,6 +174,7 @@ export function useMortgageCalculatorPageLogic() {
         setCurrentCpi(state.currentCpi);
         setVatAtPurchase(state.vatAtPurchase ?? '');
         setVatToday(state.vatToday ?? '');
+        setCpiShare(state.cpiShare ?? '100');
         setRows(
           state.payments.map((p) => ({
             id: nextId(),
@@ -201,7 +207,9 @@ export function useMortgageCalculatorPageLogic() {
     currentCpi,
     vatAtPurchase,
     vatToday,
+    cpiShare,
     setBaseCpi,
+    setCpiShare,
     setBaseCpiAutoFilled,
     setHousePrice,
     setCurrentCpi,

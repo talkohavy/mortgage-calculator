@@ -36,6 +36,7 @@ export function parseFormJson(raw: unknown): SerializedFormState {
     currentCpi: obj.currentCpi as string,
     vatAtPurchase: typeof obj.vatAtPurchase === 'string' ? obj.vatAtPurchase : '',
     vatToday: typeof obj.vatToday === 'string' ? obj.vatToday : '',
+    cpiShare: typeof obj.cpiShare === 'string' ? obj.cpiShare : '100',
     payments,
   };
 }

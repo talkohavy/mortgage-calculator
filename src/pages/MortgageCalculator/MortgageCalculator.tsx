@@ -17,12 +17,14 @@ export default function MortgageCalculatorPage() {
     currentCpi,
     vatAtPurchase,
     vatToday,
+    cpiShare,
     setBaseCpi,
     setBaseCpiAutoFilled,
     setHousePrice,
     setCurrentCpi,
     setVatAtPurchase,
     setVatToday,
+    setCpiShare,
     handlePurchaseDateChange,
     rows,
     updateRow,
@@ -47,12 +49,14 @@ export default function MortgageCalculatorPage() {
           baseCpi={baseCpi}
           baseCpiAutoFilled={baseCpiAutoFilled}
           currentCpi={currentCpi}
+          cpiShare={cpiShare}
           vatAtPurchase={vatAtPurchase}
           vatToday={vatToday}
           setHousePrice={setHousePrice}
           setBaseCpi={setBaseCpi}
           setBaseCpiAutoFilled={setBaseCpiAutoFilled}
           setCurrentCpi={setCurrentCpi}
+          setCpiShare={setCpiShare}
           setVatAtPurchase={setVatAtPurchase}
           setVatToday={setVatToday}
           handlePurchaseDateChange={handlePurchaseDateChange}

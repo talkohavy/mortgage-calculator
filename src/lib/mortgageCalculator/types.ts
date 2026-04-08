@@ -34,6 +34,8 @@ export type SerializedFormState = {
   currentCpi: string;
   vatAtPurchase: string;
   vatToday: string;
+  /** Percentage of the CPI inflation the buyer bears (0–100). Default: 100 (no subsidy). */
+  cpiShare: string;
   payments: SerializedPayment[];
 };
 
