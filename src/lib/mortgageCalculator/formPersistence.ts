@@ -10,7 +10,9 @@ export type SerializedPayment = {
 export type SerializedFormState = {
   version: 1;
   housePrice: string;
+  purchaseDateIso: string | null;
   baseCpi: string;
+  baseCpiAutoFilled?: boolean;
   currentCpi: string;
   payments: SerializedPayment[];
 };
@@ -41,29 +43,35 @@ export function parseFormJson(raw: unknown): SerializedFormState {
 
   const obj = raw as Record<string, unknown>;
 
-  if (obj['version'] !== 1) throw new Error('Unsupported file version.');
-  if (typeof obj['housePrice'] !== 'string') throw new Error('Missing or invalid "housePrice".');
-  if (typeof obj['baseCpi'] !== 'string') throw new Error('Missing or invalid "baseCpi".');
-  if (typeof obj['currentCpi'] !== 'string') throw new Error('Missing or invalid "currentCpi".');
-  if (!Array.isArray(obj['payments'])) throw new Error('Missing or invalid "payments" array.');
+  if (obj.version !== 1) throw new Error('Unsupported file version.');
 
-  const payments: SerializedPayment[] = (obj['payments'] as unknown[]).map((item, i) => {
+  if (typeof obj.housePrice !== 'string') throw new Error('Missing or invalid "housePrice".');
+
+  if (typeof obj.currentCpi !== 'string') throw new Error('Missing or invalid "currentCpi".');
+
+  if (!Array.isArray(obj.payments)) throw new Error('Missing or invalid "payments" array.');
+
+  const payments: SerializedPayment[] = (obj.payments as unknown[]).map((item, i) => {
     if (typeof item !== 'object' || item === null) throw new Error(`Payment[${i}] is not an object.`);
+
     const p = item as Record<string, unknown>;
-    const date = typeof p['date'] === 'string' ? p['date'] : null;
+    const date = typeof p.date === 'string' ? p.date : null;
+
     return {
       date,
-      pmt: typeof p['pmt'] === 'number' ? p['pmt'] : 0,
-      cpi: typeof p['cpi'] === 'number' ? p['cpi'] : 0,
-      cpiAutoFilled: Boolean(p['cpiAutoFilled']),
+      pmt: typeof p.pmt === 'number' ? p.pmt : 0,
+      cpi: typeof p.cpi === 'number' ? p.cpi : 0,
+      cpiAutoFilled: Boolean(p.cpiAutoFilled),
     };
   });
 
   return {
     version: 1,
-    housePrice: obj['housePrice'] as string,
-    baseCpi: obj['baseCpi'] as string,
-    currentCpi: obj['currentCpi'] as string,
+    housePrice: obj.housePrice as string,
+    purchaseDateIso: typeof obj.purchaseDateIso === 'string' ? obj.purchaseDateIso : null,
+    baseCpi: typeof obj.baseCpi === 'string' ? obj.baseCpi : '',
+    baseCpiAutoFilled: Boolean(obj.baseCpiAutoFilled),
+    currentCpi: obj.currentCpi as string,
     payments,
   };
 }

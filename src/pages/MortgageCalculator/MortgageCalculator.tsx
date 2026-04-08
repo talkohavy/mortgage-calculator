@@ -11,14 +11,17 @@ export default function MortgageCalculatorPage() {
     handleImport,
     handleExport,
     housePrice,
+    purchaseDate,
     baseCpi,
+    baseCpiAutoFilled,
     currentCpi,
     setBaseCpi,
+    setBaseCpiAutoFilled,
     setResult,
     setHousePrice,
     setCurrentCpi,
-    setCpiBaseYear,
-    setRows,
+    handlePurchaseDateChange,
+    handleCpiBaseYearChange,
     cpiBaseYear,
     rows,
     updateRow,
@@ -39,15 +42,18 @@ export default function MortgageCalculatorPage() {
 
         <LoanDetails
           housePrice={housePrice}
+          purchaseDate={purchaseDate}
           baseCpi={baseCpi}
+          baseCpiAutoFilled={baseCpiAutoFilled}
           currentCpi={currentCpi}
           cpiBaseYear={cpiBaseYear}
           setHousePrice={setHousePrice}
           setBaseCpi={setBaseCpi}
+          setBaseCpiAutoFilled={setBaseCpiAutoFilled}
           setCurrentCpi={setCurrentCpi}
-          setCpiBaseYear={setCpiBaseYear}
+          handlePurchaseDateChange={handlePurchaseDateChange}
+          handleCpiBaseYearChange={handleCpiBaseYearChange}
           setResult={setResult}
-          setRows={setRows}
         />
 
         <PaymentHistory

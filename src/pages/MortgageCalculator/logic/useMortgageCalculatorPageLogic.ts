@@ -16,7 +16,9 @@ import type { DateValue } from '@ark-ui/react';
 
 export function useMortgageCalculatorPageLogic() {
   const [housePrice, setHousePrice] = useState<string>('5000000');
-  const [baseCpi, setBaseCpi] = useState<string>('100');
+  const [purchaseDate, setPurchaseDateState] = useState<DateValue[]>([]);
+  const [baseCpi, setBaseCpi] = useState<string>('');
+  const [baseCpiAutoFilled, setBaseCpiAutoFilled] = useState<boolean>(false);
   const [currentCpi, setCurrentCpi] = useState<string>('');
   const [cpiBaseYear, setCpiBaseYear] = useState<number>(CPI_BASE_YEARS.at(-1) ?? 2024);
   const [rows, setRows] = useState<FormRow[]>(DEFAULT_ROWS);
@@ -25,6 +27,61 @@ export function useMortgageCalculatorPageLogic() {
 
   const tableEndRef = useRef<HTMLDivElement>(null);
   const importFileRef = useRef<HTMLInputElement>(null);
+
+  const handlePurchaseDateChange = useCallback(
+    (date: DateValue[]) => {
+      setPurchaseDateState(date);
+
+      const d = date[0];
+
+      const found = d ? lookupCpi(d.year, d.month, cpiBaseYear) : null;
+
+      if (found !== null) {
+        setBaseCpi(String(found));
+        setBaseCpiAutoFilled(true);
+      } else {
+        if (baseCpiAutoFilled) setBaseCpi('');
+        setBaseCpiAutoFilled(false);
+      }
+
+      setResult(null);
+    },
+    [cpiBaseYear, baseCpiAutoFilled],
+  );
+
+  const handleCpiBaseYearChange = useCallback((newBaseYear: number) => {
+    setCpiBaseYear(newBaseYear);
+
+    // Re-fill baseCpi if the purchase date is set
+    setPurchaseDateState((prev) => {
+      const previousDate = prev[0];
+
+      if (previousDate) {
+        const found = lookupCpi(previousDate.year, previousDate.month, newBaseYear);
+
+        if (found !== null) {
+          setBaseCpi(String(found));
+          setBaseCpiAutoFilled(true);
+        } else {
+          setBaseCpiAutoFilled(false);
+        }
+      }
+
+      return prev;
+    });
+
+    // Re-fill CPI for all auto-filled payment rows
+    setRows((prev) =>
+      prev.map((r) => {
+        if (!r.cpiAutoFilled || !r.date[0]) return r;
+
+        const found = lookupCpi(r.date[0].year, r.date[0].month, newBaseYear);
+        return found !== null ? { ...r, cpi: found } : { ...r, cpi: 0, cpiAutoFilled: false };
+      }),
+    );
+
+    setResult(null);
+  }, []);
 
   const addRow = useCallback(() => {
     setRows((prev) => [...prev, { id: nextId(), date: [], pmt: 0, cpi: 0, cpiAutoFilled: false }]);
@@ -78,7 +135,7 @@ export function useMortgageCalculatorPageLogic() {
       return;
     }
     if (!base || base <= 0) {
-      setError('Please enter a valid base CPI.');
+      setError('Please enter a valid base CPI (pick a purchase date or enter it manually).');
       return;
     }
     if (!current || current <= 0) {
@@ -105,6 +162,7 @@ export function useMortgageCalculatorPageLogic() {
     downloadFormAsJson({
       version: 1,
       housePrice,
+      purchaseDateIso: serializeDate(purchaseDate),
       baseCpi,
       currentCpi,
       payments: rows.map(({ date, pmt, cpi, cpiAutoFilled }) => ({
@@ -114,7 +172,7 @@ export function useMortgageCalculatorPageLogic() {
         cpiAutoFilled,
       })),
     });
-  }, [housePrice, baseCpi, currentCpi, rows]);
+  }, [housePrice, purchaseDate, baseCpi, currentCpi, rows]);
 
   const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -127,6 +185,8 @@ export function useMortgageCalculatorPageLogic() {
         const state = parseFormJson(raw);
         setHousePrice(state.housePrice);
         setBaseCpi(state.baseCpi);
+        setBaseCpiAutoFilled(Boolean(state.baseCpiAutoFilled));
+        setPurchaseDateState(isoToDateValue(state.purchaseDateIso ?? null));
         setCurrentCpi(state.currentCpi);
         setRows(
           state.payments.map((p) => ({
@@ -153,13 +213,17 @@ export function useMortgageCalculatorPageLogic() {
     handleImport,
     handleExport,
     housePrice,
+    purchaseDate,
     baseCpi,
+    baseCpiAutoFilled,
     currentCpi,
     setBaseCpi,
+    setBaseCpiAutoFilled,
     setResult,
     setHousePrice,
     setCurrentCpi,
-    setCpiBaseYear,
+    handlePurchaseDateChange,
+    handleCpiBaseYearChange,
     setRows,
     cpiBaseYear,
     rows,
