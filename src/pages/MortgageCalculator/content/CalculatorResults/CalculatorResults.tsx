@@ -43,6 +43,28 @@ export default function CalculatorResults(props: CalculatorResultsProps) {
         />
       </div>
 
+      {/* Calculation breakdown */}
+      <div className='bg-slate-800/40 border border-slate-700/40 rounded-xl p-4 flex flex-col gap-2 font-mono text-sm'>
+        <span className='font-sans text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1'>How we got there</span>
+
+        <div className='flex justify-between text-slate-300'>
+          <span>House price (today&apos;s money)</span>
+          <span>{formatUSD(result.housePriceToday)}</span>
+        </div>
+
+        <div className='flex justify-between text-emerald-400'>
+          <span>− Total paid (today&apos;s money)</span>
+          <span>− {formatUSD(result.totalPaidToday)}</span>
+        </div>
+
+        <div className='border-t border-slate-600 my-1' />
+
+        <div className={`flex justify-between font-semibold ${result.remainingToday <= 0 ? 'text-emerald-300' : 'text-amber-300'}`}>
+          <span>= Remaining to pay</span>
+          <span>{formatUSD(Math.max(0, result.remainingToday))}</span>
+        </div>
+      </div>
+
       {result.inflationGain !== 0 && (
         <div className='bg-slate-800/40 border border-slate-700/40 rounded-xl p-4 text-sm text-slate-400 flex flex-col gap-1'>
           <span className='font-medium text-slate-300'>Inflation Effect</span>
