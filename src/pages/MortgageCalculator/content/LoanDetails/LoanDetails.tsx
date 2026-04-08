@@ -50,6 +50,7 @@ export default function LoanDetails(props: LoanDetailsProps) {
           <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>Original House Price ($)</div>
           <Input
             initialValue={housePrice}
+            value={housePrice}
             onChange={setHousePrice}
             placeholder='e.g. 5000000'
             className={INPUT_CLASS}
@@ -67,6 +68,7 @@ export default function LoanDetails(props: LoanDetailsProps) {
           <div className='relative'>
             <Input
               initialValue={baseCpi}
+              value={baseCpi}
               onChange={(v) => {
                 setBaseCpi(v);
                 setBaseCpiAutoFilled(false);
@@ -86,7 +88,13 @@ export default function LoanDetails(props: LoanDetailsProps) {
 
         <div className='flex flex-col gap-1.5'>
           <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>Current CPI (Today)</div>
-          <Input initialValue={currentCpi} onChange={setCurrentCpi} placeholder='e.g. 141' className={INPUT_CLASS} />
+          <Input
+            initialValue={currentCpi}
+            value={currentCpi}
+            onChange={setCurrentCpi}
+            placeholder='e.g. 141'
+            className={INPUT_CLASS}
+          />
         </div>
       </div>
 
@@ -103,6 +111,7 @@ export default function LoanDetails(props: LoanDetailsProps) {
           <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>VAT at Purchase (%)</div>
           <Input
             initialValue={vatAtPurchase}
+            value={vatAtPurchase}
             onChange={setVatAtPurchase}
             placeholder='e.g. 17'
             className={INPUT_CLASS}
@@ -111,7 +120,13 @@ export default function LoanDetails(props: LoanDetailsProps) {
 
         <div className='flex flex-col gap-1.5'>
           <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>Current VAT (%)</div>
-          <Input initialValue={vatToday} onChange={setVatToday} placeholder='e.g. 18' className={INPUT_CLASS} />
+          <Input
+            initialValue={vatToday}
+            value={vatToday}
+            onChange={setVatToday}
+            placeholder='e.g. 18'
+            className={INPUT_CLASS}
+          />
         </div>
       </div>
     </section>

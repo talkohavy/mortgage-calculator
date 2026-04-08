@@ -23,6 +23,7 @@ export default function PaymentRow(props: PaymentRowProps) {
 
       <Input
         initialValue={row.pmt === 0 ? '' : String(row.pmt)}
+        value={row.pmt === 0 ? '' : String(row.pmt)}
         onChange={(v) => {
           updateRow(row.id, 'pmt', v);
         }}
@@ -33,6 +34,7 @@ export default function PaymentRow(props: PaymentRowProps) {
       <div className='relative'>
         <Input
           initialValue={row.cpi === 0 ? '' : String(row.cpi)}
+          value={row.cpi === 0 ? '' : String(row.cpi)}
           onChange={(v) => {
             updateRow(row.id, 'cpi', v);
           }}
@@ -50,8 +52,9 @@ export default function PaymentRow(props: PaymentRowProps) {
 
       <Input
         initialValue={row.vat === 0 ? '' : String(row.vat)}
-        onChange={(v) => {
-          updateRow(row.id, 'vat', v);
+        value={row.vat === 0 ? '' : String(row.vat)}
+        onChange={(newVatValue) => {
+          updateRow(row.id, 'vat', newVatValue);
         }}
         placeholder='%'
         className={INPUT_CLASS}
