@@ -1,5 +1,4 @@
 import DatePicker from '@src/components/DatePicker';
-import { CPI_BASE_YEARS } from '@src/lib/mortgageCalculator';
 import type { DateValue } from '@ark-ui/react';
 
 type LoanDetailsProps = {
@@ -8,13 +7,11 @@ type LoanDetailsProps = {
   baseCpi: string;
   baseCpiAutoFilled: boolean;
   currentCpi: string;
-  cpiBaseYear: number;
   setHousePrice: (val: string) => void;
   setBaseCpi: (val: string) => void;
   setBaseCpiAutoFilled: (val: boolean) => void;
   setCurrentCpi: (val: string) => void;
   handlePurchaseDateChange: (date: DateValue[]) => void;
-  handleCpiBaseYearChange: (year: number) => void;
   setResult: (val: any) => void;
 };
 
@@ -25,13 +22,11 @@ export default function LoanDetails(props: LoanDetailsProps) {
     baseCpi,
     baseCpiAutoFilled,
     currentCpi,
-    cpiBaseYear,
     setHousePrice,
     setBaseCpi,
     setBaseCpiAutoFilled,
     setCurrentCpi,
     handlePurchaseDateChange,
-    handleCpiBaseYearChange,
     setResult,
   } = props;
 
@@ -102,25 +97,9 @@ export default function LoanDetails(props: LoanDetailsProps) {
               setCurrentCpi(e.target.value);
               setResult(null);
             }}
-            placeholder='e.g. 310'
+            placeholder='e.g. 141'
             className='bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
           />
-        </div>
-
-        {/* CPI Base Year */}
-        <div className='flex flex-col gap-1.5'>
-          <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>CPI Base Year</div>
-          <select
-            value={cpiBaseYear}
-            onChange={(e) => handleCpiBaseYearChange(Number(e.target.value))}
-            className='bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500'
-          >
-            {CPI_BASE_YEARS.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
     </section>

@@ -1,7 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import {
   calculateMortgage,
-  CPI_BASE_YEARS,
   downloadFormAsJson,
   lookupCpi,
   parseFormJson,
@@ -20,7 +19,6 @@ export function useMortgageCalculatorPageLogic() {
   const [baseCpi, setBaseCpi] = useState<string>('');
   const [baseCpiAutoFilled, setBaseCpiAutoFilled] = useState<boolean>(false);
   const [currentCpi, setCurrentCpi] = useState<string>('');
-  const [cpiBaseYear, setCpiBaseYear] = useState<number>(CPI_BASE_YEARS.at(-1) ?? 2024);
   const [rows, setRows] = useState<FormRow[]>(DEFAULT_ROWS);
   const [result, setResult] = useState<MortgageResult | null>(null);
   const [error, setError] = useState<string>('');
@@ -31,11 +29,8 @@ export function useMortgageCalculatorPageLogic() {
   const handlePurchaseDateChange = useCallback(
     (date: DateValue[]) => {
       setPurchaseDateState(date);
-
       const d = date[0];
-
-      const found = d ? lookupCpi(d.year, d.month, cpiBaseYear) : null;
-
+      const found = d ? lookupCpi(d.year, d.month) : null;
       if (found !== null) {
         setBaseCpi(String(found));
         setBaseCpiAutoFilled(true);
@@ -43,45 +38,10 @@ export function useMortgageCalculatorPageLogic() {
         if (baseCpiAutoFilled) setBaseCpi('');
         setBaseCpiAutoFilled(false);
       }
-
       setResult(null);
     },
-    [cpiBaseYear, baseCpiAutoFilled],
+    [baseCpiAutoFilled],
   );
-
-  const handleCpiBaseYearChange = useCallback((newBaseYear: number) => {
-    setCpiBaseYear(newBaseYear);
-
-    // Re-fill baseCpi if the purchase date is set
-    setPurchaseDateState((prev) => {
-      const previousDate = prev[0];
-
-      if (previousDate) {
-        const found = lookupCpi(previousDate.year, previousDate.month, newBaseYear);
-
-        if (found !== null) {
-          setBaseCpi(String(found));
-          setBaseCpiAutoFilled(true);
-        } else {
-          setBaseCpiAutoFilled(false);
-        }
-      }
-
-      return prev;
-    });
-
-    // Re-fill CPI for all auto-filled payment rows
-    setRows((prev) =>
-      prev.map((r) => {
-        if (!r.cpiAutoFilled || !r.date[0]) return r;
-
-        const found = lookupCpi(r.date[0].year, r.date[0].month, newBaseYear);
-        return found !== null ? { ...r, cpi: found } : { ...r, cpi: 0, cpiAutoFilled: false };
-      }),
-    );
-
-    setResult(null);
-  }, []);
 
   const addRow = useCallback(() => {
     setRows((prev) => [...prev, { id: nextId(), date: [], pmt: 0, cpi: 0, cpiAutoFilled: false }]);
@@ -92,25 +52,24 @@ export function useMortgageCalculatorPageLogic() {
     setRows((prev) => (prev.length > 1 ? prev.filter((r) => r.id !== id) : prev));
   }, []);
 
-  const updateRowDate = useCallback(
-    (id: number, date: DateValue[]) => {
-      setRows((prev) =>
-        prev.map((r) => {
-          if (r.id !== id) return r;
-          const d = date[0];
-          const found = d ? lookupCpi(d.year, d.month, cpiBaseYear) : null;
-          return {
-            ...r,
-            date,
-            cpi: found !== null ? found : r.cpiAutoFilled ? 0 : r.cpi,
-            cpiAutoFilled: found !== null,
-          };
-        }),
-      );
-      setResult(null);
-    },
-    [cpiBaseYear],
-  );
+  const updateRowDate = useCallback((id: number, date: DateValue[]) => {
+    setRows((prev) =>
+      prev.map((row) => {
+        if (row.id !== id) return row;
+
+        const previousDate = date[0];
+        const found = previousDate ? lookupCpi(previousDate.year, previousDate.month) : null;
+
+        return {
+          ...row,
+          date,
+          cpi: found !== null ? found : row.cpiAutoFilled ? 0 : row.cpi,
+          cpiAutoFilled: found !== null,
+        };
+      }),
+    );
+    setResult(null);
+  }, []);
 
   const updateRow = useCallback((id: number, field: 'pmt' | 'cpi', raw: string) => {
     setRows((prev) =>
@@ -223,9 +182,6 @@ export function useMortgageCalculatorPageLogic() {
     setHousePrice,
     setCurrentCpi,
     handlePurchaseDateChange,
-    handleCpiBaseYearChange,
-    setRows,
-    cpiBaseYear,
     rows,
     updateRow,
     updateRowDate,

@@ -21,8 +21,6 @@ export default function MortgageCalculatorPage() {
     setHousePrice,
     setCurrentCpi,
     handlePurchaseDateChange,
-    handleCpiBaseYearChange,
-    cpiBaseYear,
     rows,
     updateRow,
     updateRowDate,
@@ -46,13 +44,11 @@ export default function MortgageCalculatorPage() {
           baseCpi={baseCpi}
           baseCpiAutoFilled={baseCpiAutoFilled}
           currentCpi={currentCpi}
-          cpiBaseYear={cpiBaseYear}
           setHousePrice={setHousePrice}
           setBaseCpi={setBaseCpi}
           setBaseCpiAutoFilled={setBaseCpiAutoFilled}
           setCurrentCpi={setCurrentCpi}
           handlePurchaseDateChange={handlePurchaseDateChange}
-          handleCpiBaseYearChange={handleCpiBaseYearChange}
           setResult={setResult}
         />
 
