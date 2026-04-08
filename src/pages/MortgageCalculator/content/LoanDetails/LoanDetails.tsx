@@ -20,7 +20,6 @@ type LoanDetailsProps = {
   setVatAtPurchase: (val: string) => void;
   setVatToday: (val: string) => void;
   handlePurchaseDateChange: (date: DateValue[]) => void;
-  setResult: (val: any) => void;
 };
 
 export default function LoanDetails(props: LoanDetailsProps) {
@@ -39,7 +38,6 @@ export default function LoanDetails(props: LoanDetailsProps) {
     setVatAtPurchase,
     setVatToday,
     handlePurchaseDateChange,
-    setResult,
   } = props;
 
   return (
@@ -113,15 +111,7 @@ export default function LoanDetails(props: LoanDetailsProps) {
 
         <div className='flex flex-col gap-1.5'>
           <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>Current VAT (%)</div>
-          <Input
-            initialValue={vatToday}
-            onChange={(v) => {
-              setVatToday(v);
-              setResult(null);
-            }}
-            placeholder='e.g. 18'
-            className={INPUT_CLASS}
-          />
+          <Input initialValue={vatToday} onChange={setVatToday} placeholder='e.g. 18' className={INPUT_CLASS} />
         </div>
       </div>
     </section>

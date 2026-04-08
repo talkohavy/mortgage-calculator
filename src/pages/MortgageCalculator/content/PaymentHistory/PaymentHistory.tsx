@@ -7,14 +7,13 @@ type PaymentHistoryProps = {
   rows: FormRow[];
   updateRowDate: (id: number, date: DateValue[]) => void;
   updateRow: (id: number, field: 'pmt' | 'cpi' | 'vat', raw: string) => void;
-  setResult: (result: any) => void;
   removeRow: (id: number) => void;
   addRow: () => void;
   tableEndRef: RefObject<HTMLDivElement | null>;
 };
 
 export default function PaymentHistory(props: PaymentHistoryProps) {
-  const { rows, updateRowDate, updateRow, setResult, removeRow, addRow, tableEndRef } = props;
+  const { rows, updateRowDate, updateRow, removeRow, addRow, tableEndRef } = props;
 
   return (
     <section className='bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6 flex flex-col gap-4'>
@@ -45,9 +44,8 @@ export default function PaymentHistory(props: PaymentHistoryProps) {
             row={row}
             updateRowDate={updateRowDate}
             updateRow={updateRow}
-            setResult={setResult}
             removeRow={removeRow}
-            rows={rows}
+            canRemoveRow={rows.length === 1}
           />
         ))}
 

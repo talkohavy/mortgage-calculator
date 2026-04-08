@@ -31,16 +31,19 @@ export function useMortgageCalculatorPageLogic() {
   const handlePurchaseDateChange = useCallback(
     (date: DateValue[]) => {
       setPurchaseDateState(date);
-      const d = date[0];
-      const found = d ? lookupCpi(d.year, d.month) : null;
-      if (found !== null) {
-        setBaseCpi(String(found));
+
+      const previousDate = date[0];
+      const foundCpi = previousDate ? lookupCpi(previousDate.year, previousDate.month) : null;
+
+      if (foundCpi) {
+        setBaseCpi(String(foundCpi));
         setBaseCpiAutoFilled(true);
-      } else {
-        if (baseCpiAutoFilled) setBaseCpi('');
-        setBaseCpiAutoFilled(false);
+        return;
       }
-      setResult(null);
+
+      if (baseCpiAutoFilled) setBaseCpi(''); // <--- if the CPI was auto-filled, clear the input. Need to think about this.
+
+      setBaseCpiAutoFilled(false);
     },
     [baseCpiAutoFilled],
   );
@@ -61,17 +64,16 @@ export function useMortgageCalculatorPageLogic() {
         if (row.id !== id) return row;
 
         const previousDate = date[0];
-        const found = previousDate ? lookupCpi(previousDate.year, previousDate.month) : null;
+        const foundCpi = previousDate ? lookupCpi(previousDate.year, previousDate.month) : null;
 
         return {
           ...row,
           date,
-          cpi: found !== null ? found : row.cpiAutoFilled ? 0 : row.cpi,
-          cpiAutoFilled: found !== null,
+          cpi: foundCpi ? foundCpi : row.cpiAutoFilled ? 0 : row.cpi,
+          cpiAutoFilled: Boolean(foundCpi),
         };
       }),
     );
-    setResult(null);
   }, []);
 
   const updateRow = useCallback((id: number, field: 'pmt' | 'cpi' | 'vat', raw: string) => {
@@ -201,7 +203,6 @@ export function useMortgageCalculatorPageLogic() {
     vatToday,
     setBaseCpi,
     setBaseCpiAutoFilled,
-    setResult,
     setHousePrice,
     setCurrentCpi,
     setVatAtPurchase,

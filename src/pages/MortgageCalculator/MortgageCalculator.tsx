@@ -19,7 +19,6 @@ export default function MortgageCalculatorPage() {
     vatToday,
     setBaseCpi,
     setBaseCpiAutoFilled,
-    setResult,
     setHousePrice,
     setCurrentCpi,
     setVatAtPurchase,
@@ -57,7 +56,6 @@ export default function MortgageCalculatorPage() {
           setVatAtPurchase={setVatAtPurchase}
           setVatToday={setVatToday}
           handlePurchaseDateChange={handlePurchaseDateChange}
-          setResult={setResult}
         />
 
         <PaymentHistory
@@ -66,7 +64,6 @@ export default function MortgageCalculatorPage() {
           removeRow={removeRow}
           updateRowDate={updateRowDate}
           updateRow={updateRow}
-          setResult={setResult}
           tableEndRef={tableEndRef}
         />
 
