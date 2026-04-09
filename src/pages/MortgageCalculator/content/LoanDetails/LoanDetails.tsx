@@ -12,14 +12,12 @@ type LoanDetailsProps = {
   baseCpi: string;
   baseCpiAutoFilled: boolean;
   currentCpi: string;
-  cpiShare: string;
   vatAtPurchase: string;
   vatToday: string;
   setHousePrice: (val: string) => void;
   setBaseCpi: (val: string) => void;
   setBaseCpiAutoFilled: (val: boolean) => void;
   setCurrentCpi: (val: string) => void;
-  setCpiShare: (val: string) => void;
   setVatAtPurchase: (val: string) => void;
   setVatToday: (val: string) => void;
   handlePurchaseDateChange: (date: DateValue[]) => void;
@@ -32,14 +30,12 @@ export default function LoanDetails(props: LoanDetailsProps) {
     baseCpi,
     baseCpiAutoFilled,
     currentCpi,
-    cpiShare,
     vatAtPurchase,
     vatToday,
     setHousePrice,
     setBaseCpi,
     setBaseCpiAutoFilled,
     setCurrentCpi,
-    setCpiShare,
     setVatAtPurchase,
     setVatToday,
     handlePurchaseDateChange,
@@ -50,7 +46,7 @@ export default function LoanDetails(props: LoanDetailsProps) {
       <h2 className='text-lg font-semibold text-slate-200'>Loan Details</h2>
 
       {/* Row 1: price + dates + CPI */}
-      <div className='grid grid-cols-1 sm:grid-cols-5 gap-4'>
+      <div className='grid grid-cols-1 sm:grid-cols-4 gap-4'>
         <div className='flex flex-col gap-1.5'>
           <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>Original House Price ($)</div>
           <Input
@@ -90,19 +86,6 @@ export default function LoanDetails(props: LoanDetailsProps) {
           />
         </div>
 
-        <div className='flex flex-col gap-1.5'>
-          <div className='text-xs font-medium text-slate-400 uppercase tracking-wider'>
-            My CPI Share (%)
-            <span className='ml-1 normal-case font-normal text-slate-600'>↓ state subsidy</span>
-          </div>
-          <Input
-            initialValue={cpiShare}
-            value={cpiShare}
-            onChange={setCpiShare}
-            placeholder='100'
-            className={INPUT_CLASS}
-          />
-        </div>
       </div>
 
       {/* Row 2: VAT — optional, leave blank to skip VAT adjustment */}

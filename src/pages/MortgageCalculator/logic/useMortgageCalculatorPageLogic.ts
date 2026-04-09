@@ -21,7 +21,6 @@ export function useMortgageCalculatorPageLogic() {
   const [currentCpi, setCurrentCpi] = useState<string>('');
   const [vatAtPurchase, setVatAtPurchase] = useState<string>('');
   const [vatToday, setVatToday] = useState<string>('');
-  const [cpiShare, setCpiShare] = useState<string>('100');
   const [rows, setRows] = useState<FormRow[]>(DEFAULT_ROWS);
   const [result, setResult] = useState<MortgageResult | null>(null);
   const [error, setError] = useState<string>('');
@@ -51,7 +50,7 @@ export function useMortgageCalculatorPageLogic() {
 
   const addRow = useCallback(() => {
     const vatDefault = Number.parseFloat(vatAtPurchase) || 0;
-    setRows((prev) => [...prev, { id: nextId(), date: [], pmt: 0, cpi: 0, cpiAutoFilled: false, vat: vatDefault }]);
+    setRows((prev) => [...prev, { id: nextId(), date: [], pmt: 0, cpi: 0, cpiAutoFilled: false, vat: vatDefault, cpiShare: 100 }]);
     setTimeout(() => tableEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
   }, [vatAtPurchase]);
 
@@ -77,7 +76,7 @@ export function useMortgageCalculatorPageLogic() {
     );
   }, []);
 
-  const updateRow = useCallback((id: number, field: 'pmt' | 'cpi' | 'vat', raw: string) => {
+  const updateRow = useCallback((id: number, field: 'pmt' | 'cpi' | 'vat' | 'cpiShare', raw: string) => {
     setRows((prev) =>
       prev.map((r) => {
         if (r.id !== id) return r;
@@ -110,14 +109,13 @@ export function useMortgageCalculatorPageLogic() {
 
     const vatPurchaseNum = Number.parseFloat(vatAtPurchase) || 0;
     const vatTodayNum = Number.parseFloat(vatToday) || 0;
-    const cpiShareNum = Number.parseFloat(cpiShare);
-    const effectiveCpiShare = Number.isNaN(cpiShareNum) ? 100 : Math.min(100, Math.max(0, cpiShareNum));
 
-    const payments = rows.map(({ date, pmt, cpi, vat }) => ({
+    const payments = rows.map(({ date, pmt, cpi, vat, cpiShare }) => ({
       label: date[0] ? `${date[0].month}/${date[0].year}` : '',
       pmt,
       cpi,
       vat,
+      cpiShare,
     }));
 
     const res = calculateMortgage({
@@ -126,12 +124,11 @@ export function useMortgageCalculatorPageLogic() {
       currentCpi: current,
       vatAtPurchase: vatPurchaseNum,
       vatToday: vatTodayNum,
-      cpiShare: effectiveCpiShare,
       payments,
     });
 
     setResult(res);
-  }, [housePrice, baseCpi, currentCpi, vatAtPurchase, vatToday, cpiShare, rows]);
+  }, [housePrice, baseCpi, currentCpi, vatAtPurchase, vatToday, rows]);
 
   const handleReset = useCallback(() => {
     setResult(null);
@@ -147,16 +144,16 @@ export function useMortgageCalculatorPageLogic() {
       currentCpi,
       vatAtPurchase,
       vatToday,
-      cpiShare,
-      payments: rows.map(({ date, pmt, cpi, cpiAutoFilled, vat }) => ({
+      payments: rows.map(({ date, pmt, cpi, cpiAutoFilled, vat, cpiShare }) => ({
         date: serializeDate(date),
         pmt,
         cpi,
         cpiAutoFilled,
         vat,
+        cpiShare,
       })),
     });
-  }, [housePrice, purchaseDate, baseCpi, currentCpi, vatAtPurchase, vatToday, cpiShare, rows]);
+  }, [housePrice, purchaseDate, baseCpi, currentCpi, vatAtPurchase, vatToday, rows]);
 
   const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -174,7 +171,6 @@ export function useMortgageCalculatorPageLogic() {
         setCurrentCpi(state.currentCpi);
         setVatAtPurchase(state.vatAtPurchase ?? '');
         setVatToday(state.vatToday ?? '');
-        setCpiShare(state.cpiShare ?? '100');
         setRows(
           state.payments.map((p) => ({
             id: nextId(),
@@ -183,6 +179,7 @@ export function useMortgageCalculatorPageLogic() {
             cpi: p.cpi,
             cpiAutoFilled: p.cpiAutoFilled,
             vat: p.vat ?? 0,
+            cpiShare: p.cpiShare ?? 100,
           })),
         );
         setResult(null);
@@ -207,9 +204,7 @@ export function useMortgageCalculatorPageLogic() {
     currentCpi,
     vatAtPurchase,
     vatToday,
-    cpiShare,
     setBaseCpi,
-    setCpiShare,
     setBaseCpiAutoFilled,
     setHousePrice,
     setCurrentCpi,

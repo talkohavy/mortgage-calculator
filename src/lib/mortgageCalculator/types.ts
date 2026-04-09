@@ -4,6 +4,8 @@ export type PaymentRow = {
   cpi: number;
   /** VAT rate (%) at the time this payment was made, e.g. 17. 0 = not tracking VAT. */
   vat: number;
+  /** Percentage of the CPI inflation the buyer bears for this payment (0–100). Default: 100. */
+  cpiShare: number;
 };
 
 export type PaymentBreakdownRow = {
@@ -34,8 +36,6 @@ export type SerializedFormState = {
   currentCpi: string;
   vatAtPurchase: string;
   vatToday: string;
-  /** Percentage of the CPI inflation the buyer bears (0–100). Default: 100 (no subsidy). */
-  cpiShare: string;
   payments: SerializedPayment[];
 };
 
@@ -45,4 +45,6 @@ export type SerializedPayment = {
   cpi: number;
   cpiAutoFilled: boolean;
   vat: number;
+  /** Percentage of the CPI inflation the buyer bears for this payment (0–100). Default: 100. */
+  cpiShare: number;
 };

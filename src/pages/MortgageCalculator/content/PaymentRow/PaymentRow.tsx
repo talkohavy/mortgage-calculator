@@ -10,7 +10,7 @@ const INPUT_CLASS =
 type PaymentRowProps = {
   row: FormRow;
   updateRowDate: (id: number, date: DateValue[]) => void;
-  updateRow: (id: number, field: 'pmt' | 'cpi' | 'vat', raw: string) => void;
+  updateRow: (id: number, field: 'pmt' | 'cpi' | 'vat' | 'cpiShare', raw: string) => void;
   removeRow: (id: number) => void;
   canRemoveRow: boolean;
 };
@@ -19,7 +19,7 @@ export default function PaymentRow(props: PaymentRowProps) {
   const { row, updateRowDate, updateRow, removeRow, canRemoveRow } = props;
 
   return (
-    <div className='grid grid-cols-[1.2fr_1fr_1fr_0.55fr_auto] gap-3 items-center group'>
+    <div className='grid grid-cols-[1.2fr_1fr_1fr_0.55fr_0.55fr_auto] gap-3 items-center group'>
       <DatePicker value={row.date} setValue={(date: DateValue[]) => updateRowDate(row.id, date)} />
 
       <Input
@@ -42,10 +42,16 @@ export default function PaymentRow(props: PaymentRowProps) {
       <Input
         initialValue={row.vat === 0 ? '' : String(row.vat)}
         value={row.vat === 0 ? '' : String(row.vat)}
-        onChange={(newVatValue) => {
-          updateRow(row.id, 'vat', newVatValue);
-        }}
+        onChange={(v) => updateRow(row.id, 'vat', v)}
         placeholder='%'
+        className={INPUT_CLASS}
+      />
+
+      <Input
+        initialValue={row.cpiShare === 100 ? '' : String(row.cpiShare)}
+        value={row.cpiShare === 100 ? '' : String(row.cpiShare)}
+        onChange={(v) => updateRow(row.id, 'cpiShare', v)}
+        placeholder='100'
         className={INPUT_CLASS}
       />
 

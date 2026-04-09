@@ -9,12 +9,6 @@ export type CalculateMortgageProps = {
   vatAtPurchase: number;
   /** Current VAT rate (%), e.g. 18. 0 = not tracking VAT. */
   vatToday: number;
-  /**
-   * Percentage of the CPI inflation the buyer is responsible for (0–100).
-   * e.g. 50 means the state covers half the inflation.
-   * Defaults to 100 (buyer bears full inflation).
-   */
-  cpiShare?: number;
   payments: PaymentRow[];
 };
 
@@ -30,15 +24,15 @@ function applyShare(rawFactor: number, share: number): number {
 
 /**
  * Calculates the inflation- and VAT-adjusted remaining mortgage balance.
- * Supports an optional cpiShare discount where the state covers part of the CPI adjustment.
+ * Each payment can have its own cpiShare to model per-period state subsidies.
  */
 export function calculateMortgage(props: CalculateMortgageProps): MortgageResult {
-  const { housePrice, baseCpi, currentCpi, vatAtPurchase, vatToday, payments, cpiShare = 100 } = props;
+  const { housePrice, baseCpi, currentCpi, vatAtPurchase, vatToday, payments } = props;
 
   const houseVatFactor = calcVatFactor(vatAtPurchase, vatToday);
   const rawHouseCpiFactor = baseCpi > 0 ? currentCpi / baseCpi : 1;
-  const effectiveHouseCpiFactor = applyShare(rawHouseCpiFactor, cpiShare);
-  const housePriceToday = housePrice * effectiveHouseCpiFactor * houseVatFactor;
+  // House price uses 100% CPI share (the subsidy applies only to the buyer's PMT obligations)
+  const housePriceToday = housePrice * rawHouseCpiFactor * houseVatFactor;
 
   let totalPaidToday = 0;
   let totalPaidNominal = 0;
@@ -48,13 +42,14 @@ export function calculateMortgage(props: CalculateMortgageProps): MortgageResult
   for (const payment of payments) {
     if (payment.pmt > 0 && payment.cpi > 0) {
       const rawCpiFactor = currentCpi / payment.cpi;
-      const effectiveCpiFactor = applyShare(rawCpiFactor, cpiShare);
+      const share = Math.min(100, Math.max(0, payment.cpiShare ?? 100));
+      const effectiveCpiFactor = applyShare(rawCpiFactor, share);
       const vf = calcVatFactor(payment.vat, vatToday);
       const todayValue = payment.pmt * effectiveCpiFactor * vf;
 
       totalPaidNominal += payment.pmt;
       totalPaidToday += todayValue;
-      totalPaidTodayCpiOnly += payment.pmt * effectiveCpiFactor; // for inflation gain (no VAT)
+      totalPaidTodayCpiOnly += payment.pmt * effectiveCpiFactor;
 
       paymentBreakdown.push({
         label: payment.label,
