@@ -29,8 +29,12 @@ function applyShare(rawFactor: number, share: number): number {
 export function calculateMortgage(props: CalculateMortgageProps): MortgageResult {
   const { housePrice, baseCpi, currentCpi, vatAtPurchase, vatToday, payments } = props;
 
+  if (!baseCpi || baseCpi <= 0) {
+    throw new Error('baseCpi must be a positive number (CPI index at purchase).');
+  }
+
   const houseVatFactor = calcVatFactor(vatAtPurchase, vatToday);
-  const rawHouseCpiFactor = baseCpi > 0 ? currentCpi / baseCpi : 1;
+  const rawHouseCpiFactor = currentCpi / baseCpi;
 
   let totalPaidToday = 0;
   let totalPaidNominal = 0;
