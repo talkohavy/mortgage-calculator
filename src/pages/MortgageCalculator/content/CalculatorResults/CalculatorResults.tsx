@@ -1,30 +1,35 @@
 import clsx from 'clsx';
 import { formatUSD } from '../../logic/utils/formatUSD';
 import ResultCard from '../ResultCard';
+import type { Perspective } from '../../logic/useMortgageCalculatorPageLogic';
 import type { MortgageResult } from '@src/lib/mortgageCalculator';
 
 type CalculatorResultsProps = {
   result: MortgageResult;
   housePrice: string;
+  perspective: Perspective;
 };
 
 export default function CalculatorResults(props: CalculatorResultsProps) {
-  const { result, housePrice } = props;
+  const { result, housePrice, perspective } = props;
+  const isAtPurchase = perspective === 'atPurchase';
 
   return (
     <section className='flex flex-col gap-4'>
-      <h2 className='text-lg font-semibold text-slate-200'>Results — in Today&apos;s Money</h2>
+      <h2 className='text-lg font-semibold text-slate-200'>
+        {isAtPurchase ? 'Results — at Purchase Date' : "Results — in Today's Money"}
+      </h2>
 
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
         <ResultCard
-          label='House Price Today'
+          label={isAtPurchase ? 'House Price (Original)' : 'House Price Today'}
           value={formatUSD(result.housePriceToday)}
           color='border-slate-600 text-slate-100'
-          subtitle={`Original: ${formatUSD(Number.parseFloat(housePrice))}`}
+          subtitle={isAtPurchase ? undefined : `Original: ${formatUSD(Number.parseFloat(housePrice))}`}
         />
 
         <ResultCard
-          label="Total Paid (Today's Value)"
+          label={isAtPurchase ? 'Total Paid (at Purchase)' : "Total Paid (Today's Value)"}
           value={formatUSD(result.totalPaidToday)}
           color='border-emerald-700/60 text-emerald-300'
           subtitle={`Nominal paid: ${formatUSD(result.totalPaidNominal)}`}
@@ -37,9 +42,7 @@ export default function CalculatorResults(props: CalculatorResultsProps) {
             result.remainingToday <= 0 ? 'border-emerald-600 text-emerald-300' : 'border-amber-600/60 text-amber-300'
           }
           subtitle={
-            result.remainingToday <= 0
-              ? 'Fully paid off!'
-              : `Nominal remaining: ${formatUSD(Math.max(0, result.remainingNominal))}`
+            result.remainingToday <= 0 ? 'Fully paid off!' : `Nominal remaining: ${formatUSD(result.remainingNominal)}`
           }
         />
       </div>
@@ -58,7 +61,7 @@ export default function CalculatorResults(props: CalculatorResultsProps) {
                   <th className='text-right pb-2 pr-4'>Original</th>
                   <th className='text-right pb-2 pr-4'>CPI factor</th>
                   <th className='text-right pb-2 pr-4'>VAT factor</th>
-                  <th className='text-right pb-2'>Today&apos;s value</th>
+                  <th className='text-right pb-2'>{isAtPurchase ? 'At purchase' : "Today's value"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -92,7 +95,7 @@ export default function CalculatorResults(props: CalculatorResultsProps) {
                   <th className='text-right pb-2 pr-4'>Nominal</th>
                   <th className='text-right pb-2 pr-4'>CPI factor</th>
                   <th className='text-right pb-2 pr-4'>VAT factor</th>
-                  <th className='text-right pb-2 pr-4'>Today&apos;s value</th>
+                  <th className='text-right pb-2 pr-4'>{isAtPurchase ? 'At purchase' : "Today's value"}</th>
                   <th className='text-right pb-2'>Remaining after</th>
                 </tr>
               </thead>
@@ -131,12 +134,12 @@ export default function CalculatorResults(props: CalculatorResultsProps) {
 
           <div className='border-t border-slate-600 pt-3 flex flex-col gap-1.5 font-mono text-sm'>
             <div className='flex justify-between text-slate-300'>
-              <span>House price (today&apos;s money)</span>
+              <span>{isAtPurchase ? 'House price (original)' : "House price (today's money)"}</span>
               <span>{formatUSD(result.housePriceToday)}</span>
             </div>
             <div className='flex justify-between text-emerald-400'>
-              <span>− Total paid (today&apos;s money)</span>
-              <span>− {formatUSD(result.totalPaidToday)}</span>
+              <span>{isAtPurchase ? '- Total paid (at purchase)' : "- Total paid (today's money)"}</span>
+              <span>- {formatUSD(result.totalPaidToday)}</span>
             </div>
             <div className='border-t border-slate-700 my-1' />
             <div
@@ -146,7 +149,7 @@ export default function CalculatorResults(props: CalculatorResultsProps) {
               )}
             >
               <span>= Remaining to pay</span>
-              <span>{formatUSD(Math.max(0, result.remainingToday))}</span>
+              <span>{formatUSD(result.remainingToday)}</span>
             </div>
           </div>
         </div>
@@ -155,34 +158,62 @@ export default function CalculatorResults(props: CalculatorResultsProps) {
       {result.inflationGain !== 0 && (
         <div className='bg-slate-800/40 border border-slate-700/40 rounded-xl p-4 text-sm text-slate-400 flex flex-col gap-1'>
           <span className='font-medium text-slate-300'>Inflation Effect</span>
-          <span>
-            Your payments lost{' '}
-            <span
-              className={result.inflationGain > 0 ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}
-            >
-              {formatUSD(Math.abs(result.inflationGain))}
-            </span>{' '}
-            in real purchasing power compared to when they were made.
-            {result.inflationGain > 0
-              ? ' Inflation worked in your favour — each shekel you paid was worth more back then than today.'
-              : ' Deflation worked against you.'}
-          </span>
+          {isAtPurchase ? (
+            <span>
+              Deflating your payments to purchase-date money {result.inflationGain > 0 ? 'saved' : 'cost'} you{' '}
+              <span
+                className={result.inflationGain > 0 ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}
+              >
+                {formatUSD(Math.abs(result.inflationGain))}
+              </span>
+              {result.inflationGain > 0
+                ? ' — payments made after prices rose are worth less at purchase date, reducing your effective debt.'
+                : ' — payments made when prices were lower are worth more at purchase date.'}
+            </span>
+          ) : (
+            <span>
+              Your payments gained{' '}
+              <span
+                className={result.inflationGain > 0 ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}
+              >
+                {formatUSD(Math.abs(result.inflationGain))}
+              </span>{' '}
+              in real purchasing power compared to when they were made.
+              {result.inflationGain > 0
+                ? ' Inflation worked in your favour — each shekel you paid was worth more back then than today.'
+                : ' Deflation worked against you.'}
+            </span>
+          )}
         </div>
       )}
 
       {result.vatGain !== 0 && (
         <div className='bg-slate-800/40 border border-slate-700/40 rounded-xl p-4 text-sm text-slate-400 flex flex-col gap-1'>
           <span className='font-medium text-slate-300'>VAT Change Effect</span>
-          <span>
-            The VAT change {result.vatGain > 0 ? 'reduced' : 'increased'} the real value of your past payments by{' '}
-            <span className={result.vatGain > 0 ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}>
-              {formatUSD(Math.abs(result.vatGain))}
+          {isAtPurchase ? (
+            <span>
+              Normalizing your payments to the purchase VAT rate {result.vatGain > 0 ? 'reduced' : 'increased'} their
+              effective value by{' '}
+              <span className={result.vatGain > 0 ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}>
+                {formatUSD(Math.abs(result.vatGain))}
+              </span>
+              .
+              {result.vatGain > 0
+                ? ' Payments made at a higher VAT rate count for less at purchase date.'
+                : ' Payments made at a lower VAT rate count for more at purchase date.'}
             </span>
-            .
-            {result.vatGain < 0
-              ? " A VAT increase means your remaining balance is higher in today's terms."
-              : ' A VAT decrease worked in your favour.'}
-          </span>
+          ) : (
+            <span>
+              The VAT change {result.vatGain > 0 ? 'reduced' : 'increased'} the real value of your past payments by{' '}
+              <span className={result.vatGain > 0 ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}>
+                {formatUSD(Math.abs(result.vatGain))}
+              </span>
+              .
+              {result.vatGain < 0
+                ? " A VAT increase means your remaining balance is higher in today's terms."
+                : ' A VAT decrease worked in your favour.'}
+            </span>
+          )}
         </div>
       )}
     </section>

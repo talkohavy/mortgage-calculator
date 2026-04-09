@@ -1,12 +1,15 @@
 import { useCallback, useRef, useState } from 'react';
 import {
   calculateMortgage,
+  calculateMortgageAtPurchase,
   downloadFormAsJson,
   lookupCpi,
   parseFormJson,
   serializeDate,
   type MortgageResult,
 } from '@src/lib/mortgageCalculator';
+
+export type Perspective = 'today' | 'atPurchase';
 import { DEFAULT_ROWS } from './constants';
 import { isoToDateValue } from './utils/isoToDateValue';
 import { nextId } from './utils/nextId';
@@ -23,6 +26,8 @@ export function useMortgageCalculatorPageLogic() {
   const [vatToday, setVatToday] = useState<string>('');
   const [rows, setRows] = useState<FormRow[]>(DEFAULT_ROWS);
   const [result, setResult] = useState<MortgageResult | null>(null);
+  const [resultAtPurchase, setResultAtPurchase] = useState<MortgageResult | null>(null);
+  const [perspective, setPerspective] = useState<Perspective>('today');
   const [error, setError] = useState<string>('');
 
   const tableEndRef = useRef<HTMLDivElement>(null);
@@ -118,20 +123,23 @@ export function useMortgageCalculatorPageLogic() {
       cpiShare,
     }));
 
-    const res = calculateMortgage({
+    const calcProps = {
       housePrice: price,
       baseCpi: base,
       currentCpi: current,
       vatAtPurchase: vatPurchaseNum,
       vatToday: vatTodayNum,
       payments,
-    });
+    };
 
-    setResult(res);
+    setResult(calculateMortgage(calcProps));
+    setResultAtPurchase(calculateMortgageAtPurchase(calcProps));
   }, [housePrice, baseCpi, currentCpi, vatAtPurchase, vatToday, rows]);
 
   const handleReset = useCallback(() => {
     setResult(null);
+    setResultAtPurchase(null);
+    setPerspective('today');
     setError('');
   }, []);
 
@@ -219,6 +227,9 @@ export function useMortgageCalculatorPageLogic() {
     tableEndRef,
     handleReset,
     result,
+    resultAtPurchase,
+    perspective,
+    setPerspective,
     handleCalculate,
     error,
   };

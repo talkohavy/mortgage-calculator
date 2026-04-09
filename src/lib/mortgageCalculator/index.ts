@@ -1,4 +1,5 @@
 export * from './mortgageCalculator';
+export * from './mortgageCalculatorAtPurchase';
 
 // utils
 export * from './logic/utils/cpiLookup';

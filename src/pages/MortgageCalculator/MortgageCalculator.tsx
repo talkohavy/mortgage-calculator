@@ -32,9 +32,14 @@ export default function MortgageCalculatorPage() {
     tableEndRef,
     handleReset,
     result,
+    resultAtPurchase,
+    perspective,
+    setPerspective,
     handleCalculate,
     error,
   } = useMortgageCalculatorPageLogic();
+
+  const activeResult = perspective === 'today' ? result : resultAtPurchase;
 
   return (
     <div className='size-full flex flex-col overflow-auto bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100'>
@@ -75,7 +80,37 @@ export default function MortgageCalculatorPage() {
 
         <ActionButtons handleCalculate={handleCalculate} handleReset={handleReset} result={result} />
 
-        {result && <CalculatorResults result={result} housePrice={housePrice} />}
+        {result && (
+          <>
+            <div className='flex items-center gap-1 p-1 bg-slate-800/60 border border-slate-700/40 rounded-xl self-start'>
+              <button
+                type='button'
+                onClick={() => setPerspective('today')}
+                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  perspective === 'today' ? 'bg-slate-600 text-slate-100 shadow' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Today&apos;s Money
+              </button>
+
+              <button
+                type='button'
+                onClick={() => setPerspective('atPurchase')}
+                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  perspective === 'atPurchase'
+                    ? 'bg-slate-600 text-slate-100 shadow'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                At Purchase Date
+              </button>
+            </div>
+
+            {activeResult && (
+              <CalculatorResults result={activeResult} housePrice={housePrice} perspective={perspective} />
+            )}
+          </>
+        )}
       </div>
     </div>
   );
