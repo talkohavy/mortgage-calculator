@@ -1,3 +1,4 @@
+import { validateParameters } from './logic/utils/validateParameters';
 import { vatFactor as calcVatFactor } from './logic/utils/vatFactor';
 import type { MortgageResult, PaymentBreakdownRow, PaymentRow } from './types';
 
@@ -29,9 +30,7 @@ function applyShare(rawFactor: number, share: number): number {
 export function calculateMortgage(props: CalculateMortgageProps): MortgageResult {
   const { housePrice, baseCpi, currentCpi, vatAtPurchase, vatToday, payments } = props;
 
-  if (!baseCpi || baseCpi <= 0) {
-    throw new Error('baseCpi must be a positive number (CPI index at purchase).');
-  }
+  validateParameters({ baseCpi, payments });
 
   const houseVatFactor = calcVatFactor(vatAtPurchase, vatToday);
   const rawHouseCpiFactor = currentCpi / baseCpi;
@@ -49,28 +48,27 @@ export function calculateMortgage(props: CalculateMortgageProps): MortgageResult
   let weightedShareSum = 0;
 
   for (const payment of payments) {
-    if (payment.pmt > 0 && payment.cpi > 0) {
-      const rawCpiFactor = currentCpi / payment.cpi;
-      const share = Math.min(100, Math.max(0, payment.cpiShare ?? 100));
-      const effectiveCpiFactor = applyShare(rawCpiFactor, share);
-      const vf = calcVatFactor(payment.vat, vatToday);
-      const todayValue = payment.pmt * effectiveCpiFactor * vf;
+    const { label, pmt, cpi, vat, cpiShare } = payment;
 
-      totalPaidNominal += payment.pmt;
-      totalPaidToday += todayValue;
-      totalPaidTodayCpiOnly += payment.pmt * effectiveCpiFactor;
+    const rawCpiFactor = currentCpi / cpi;
+    const effectiveCpiFactor = applyShare(rawCpiFactor, cpiShare);
+    const vatFactor = calcVatFactor(vat, vatToday);
+    const todayValue = pmt * effectiveCpiFactor * vatFactor;
 
-      weightedShareSum += share * payment.pmt;
-      totalWeight += payment.pmt;
+    totalPaidNominal += pmt;
+    totalPaidToday += todayValue;
+    totalPaidTodayCpiOnly += pmt * effectiveCpiFactor;
 
-      paymentBreakdown.push({
-        label: payment.label,
-        nominal: payment.pmt,
-        cpiFactor: effectiveCpiFactor,
-        vatFactor: vf,
-        todayValue,
-      });
-    }
+    weightedShareSum += cpiShare * pmt;
+    totalWeight += pmt;
+
+    paymentBreakdown.push({
+      label,
+      nominal: pmt,
+      cpiFactor: effectiveCpiFactor,
+      vatFactor,
+      todayValue,
+    });
   }
 
   // Use weighted-average cpiShare (by payment amount) for the house price.
