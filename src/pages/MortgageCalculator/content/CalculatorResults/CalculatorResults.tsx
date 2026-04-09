@@ -92,7 +92,8 @@ export default function CalculatorResults(props: CalculatorResultsProps) {
                   <th className='text-right pb-2 pr-4'>Nominal</th>
                   <th className='text-right pb-2 pr-4'>CPI factor</th>
                   <th className='text-right pb-2 pr-4'>VAT factor</th>
-                  <th className='text-right pb-2'>Today&apos;s value</th>
+                  <th className='text-right pb-2 pr-4'>Today&apos;s value</th>
+                  <th className='text-right pb-2'>Remaining after</th>
                 </tr>
               </thead>
               <tbody className='divide-y divide-slate-700/50'>
@@ -104,7 +105,12 @@ export default function CalculatorResults(props: CalculatorResultsProps) {
                     <td className='py-1.5 pr-4 text-right font-mono text-purple-300'>
                       {row.vatFactor === 1 ? <span className='text-slate-600'>—</span> : `×${row.vatFactor.toFixed(4)}`}
                     </td>
-                    <td className='py-1.5 text-right font-mono text-emerald-300'>{formatUSD(row.todayValue)}</td>
+                    <td className='py-1.5 pr-4 text-right font-mono text-emerald-300'>{formatUSD(row.todayValue)}</td>
+                    <td
+                      className={`py-1.5 text-right font-mono ${row.remainingAfter <= 0 ? 'text-emerald-300' : 'text-amber-300'}`}
+                    >
+                      {formatUSD(row.remainingAfter)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -114,7 +120,10 @@ export default function CalculatorResults(props: CalculatorResultsProps) {
                   <td className='pt-2 pr-4 text-right font-mono'>{formatUSD(result.totalPaidNominal)}</td>
                   <td className='pt-2 pr-4' />
                   <td className='pt-2 pr-4' />
-                  <td className='pt-2 text-right font-mono text-emerald-300'>{formatUSD(result.totalPaidToday)}</td>
+                  <td className='pt-2 pr-4 text-right font-mono text-emerald-300'>
+                    {formatUSD(result.totalPaidToday)}
+                  </td>
+                  <td className='pt-2 text-right font-mono text-amber-300'>{formatUSD(result.remainingToday)}</td>
                 </tr>
               </tfoot>
             </table>

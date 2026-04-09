@@ -14,6 +14,7 @@ export type PaymentBreakdownRow = {
   cpiFactor: number;
   vatFactor: number;
   todayValue: number;
+  remainingAfter: number;
 };
 
 export type MortgageResult = {

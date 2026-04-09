@@ -61,6 +61,7 @@ export function calculateMortgage(props: CalculateMortgageProps): MortgageResult
       cpiFactor: effectiveCpiFactor,
       vatFactor,
       todayValue,
+      remainingAfter: Number.POSITIVE_INFINITY,
     });
   }
 
@@ -69,6 +70,14 @@ export function calculateMortgage(props: CalculateMortgageProps): MortgageResult
   const houseCpiShare = weightedShareSum / totalWeight;
   const effectiveHouseCpiFactor = applyBuyerShare(rawHouseCpiFactor, houseCpiShare);
   const housePriceToday = housePrice * effectiveHouseCpiFactor * houseVatFactor;
+
+  // Second pass: attach running remaining balance now that housePriceToday is known.
+  let cumulativePaidToday = 0;
+
+  paymentBreakdown.forEach((row) => {
+    cumulativePaidToday += row.todayValue;
+    row.remainingAfter = housePriceToday - cumulativePaidToday;
+  });
 
   const remainingToday = housePriceToday - totalPaidToday;
   const remainingNominal = housePrice - totalPaidNominal;
