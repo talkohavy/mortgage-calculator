@@ -1,3 +1,4 @@
+import { applyBuyerShare } from './logic/utils/applyBuyerShare';
 import { validateParameters } from './logic/utils/validateParameters';
 import { vatFactor as calcVatFactor } from './logic/utils/vatFactor';
 import type { MortgageResult, PaymentBreakdownRow, PaymentRow } from './types';
@@ -12,16 +13,6 @@ export type CalculateMortgageProps = {
   vatToday: number;
   payments: PaymentRow[];
 };
-
-/**
- * Scales a raw CPI factor by the buyer's share of inflation.
- * effectiveFactor = 1 + (rawFactor − 1) × (share / 100)
- *
- * At share=100 the factor is unchanged. At share=50, only half the inflation delta applies.
- */
-function applyShare(rawFactor: number, share: number): number {
-  return 1 + (rawFactor - 1) * (share / 100);
-}
 
 /**
  * Calculates the inflation- and VAT-adjusted remaining mortgage balance.
@@ -51,7 +42,7 @@ export function calculateMortgage(props: CalculateMortgageProps): MortgageResult
     const { label, pmt, cpi, vat, cpiShare } = payment;
 
     const rawCpiFactor = currentCpi / cpi;
-    const effectiveCpiFactor = applyShare(rawCpiFactor, cpiShare);
+    const effectiveCpiFactor = applyBuyerShare(rawCpiFactor, cpiShare);
     const vatFactor = calcVatFactor(vat, vatToday);
     const todayValue = pmt * effectiveCpiFactor * vatFactor;
 
@@ -74,7 +65,7 @@ export function calculateMortgage(props: CalculateMortgageProps): MortgageResult
   // Use weighted-average cpiShare (by payment amount) for the house price.
   // Falls back to 100 when there are no valid payments.
   const houseCpiShare = totalWeight > 0 ? weightedShareSum / totalWeight : 100;
-  const effectiveHouseCpiFactor = applyShare(rawHouseCpiFactor, houseCpiShare);
+  const effectiveHouseCpiFactor = applyBuyerShare(rawHouseCpiFactor, houseCpiShare);
   const housePriceToday = housePrice * effectiveHouseCpiFactor * houseVatFactor;
 
   const remainingToday = housePriceToday - totalPaidToday;
