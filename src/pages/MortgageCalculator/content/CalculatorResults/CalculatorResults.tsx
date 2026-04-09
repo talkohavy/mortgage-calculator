@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { formatUSD } from '../../logic/utils/formatUSD';
 import ResultCard from '../ResultCard';
 import type { MortgageResult } from '@src/lib/mortgageCalculator';
@@ -48,6 +49,41 @@ export default function CalculatorResults(props: CalculatorResultsProps) {
         <div className='bg-slate-800/40 border border-slate-700/40 rounded-xl p-4 flex flex-col gap-3'>
           <span className='text-xs font-semibold uppercase tracking-wider text-slate-500'>How we got there</span>
 
+          {/* House price breakdown */}
+          <div className='overflow-x-auto'>
+            <table className='w-full text-sm'>
+              <thead>
+                <tr className='text-[11px] font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-700'>
+                  <th className='text-left pb-2 pr-4'>House price</th>
+                  <th className='text-right pb-2 pr-4'>Original</th>
+                  <th className='text-right pb-2 pr-4'>CPI factor</th>
+                  <th className='text-right pb-2 pr-4'>VAT factor</th>
+                  <th className='text-right pb-2'>Today&apos;s value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className='text-slate-300'>
+                  <td className='py-1.5 pr-4 text-slate-400'>Purchase price</td>
+                  <td className='py-1.5 pr-4 text-right font-mono'>{formatUSD(Number.parseFloat(housePrice))}</td>
+                  <td className='py-1.5 pr-4 text-right font-mono text-blue-300'>
+                    ×{result.houseCpiFactor.toFixed(4)}
+                  </td>
+                  <td className='py-1.5 pr-4 text-right font-mono text-purple-300'>
+                    {result.houseVatFactor === 1 ? (
+                      <span className='text-slate-600'>—</span>
+                    ) : (
+                      `×${result.houseVatFactor.toFixed(4)}`
+                    )}
+                  </td>
+                  <td className='py-1.5 text-right font-mono text-slate-100'>{formatUSD(result.housePriceToday)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className='border-t border-slate-700/60' />
+
+          {/* Per-payment breakdown table */}
           <div className='overflow-x-auto'>
             <table className='w-full text-sm'>
               <thead>
@@ -94,7 +130,12 @@ export default function CalculatorResults(props: CalculatorResultsProps) {
               <span>− {formatUSD(result.totalPaidToday)}</span>
             </div>
             <div className='border-t border-slate-700 my-1' />
-            <div className={`flex justify-between font-semibold ${result.remainingToday <= 0 ? 'text-emerald-300' : 'text-amber-300'}`}>
+            <div
+              className={clsx(
+                'flex justify-between font-semibold',
+                result.remainingToday <= 0 ? 'text-emerald-300' : 'text-amber-300',
+              )}
+            >
               <span>= Remaining to pay</span>
               <span>{formatUSD(Math.max(0, result.remainingToday))}</span>
             </div>

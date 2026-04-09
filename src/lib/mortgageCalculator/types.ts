@@ -18,6 +18,8 @@ export type PaymentBreakdownRow = {
 
 export type MortgageResult = {
   housePriceToday: number;
+  houseCpiFactor: number;
+  houseVatFactor: number;
   totalPaidToday: number;
   remainingToday: number;
   inflationGain: number;

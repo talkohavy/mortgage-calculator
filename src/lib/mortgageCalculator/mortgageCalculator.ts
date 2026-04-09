@@ -31,10 +31,12 @@ export function calculateMortgage(props: CalculateMortgageProps): MortgageResult
   let totalPaidTodayCpiOnly = 0;
   const paymentBreakdown: PaymentBreakdownRow[] = [];
 
-  // Track weighted-average cpiShare across all valid payments so the house price uses the
-  // same effective CPI factor as the payments. This keeps the formula symmetric: when every
-  // row has cpiShare=0, neither the house price nor the payments are inflation-adjusted, and
-  // remaining = nominal remaining. When every row is 100, the formula degrades to pure CPI.
+  /**
+   * Track weighted-average cpiShare across all valid payments so the house price uses the
+   * same effective CPI factor as the payments. This keeps the formula symmetric: when every
+   * row has cpiShare=0, neither the house price nor the payments are inflation-adjusted, and
+   * remaining = nominal remaining. When every row is 100, the formula degrades to pure CPI.
+   */
   let totalWeight = 0;
   let weightedShareSum = 0;
 
@@ -64,7 +66,7 @@ export function calculateMortgage(props: CalculateMortgageProps): MortgageResult
 
   // Use weighted-average cpiShare (by payment amount) for the house price.
   // Falls back to 100 when there are no valid payments.
-  const houseCpiShare = totalWeight > 0 ? weightedShareSum / totalWeight : 100;
+  const houseCpiShare = weightedShareSum / totalWeight;
   const effectiveHouseCpiFactor = applyBuyerShare(rawHouseCpiFactor, houseCpiShare);
   const housePriceToday = housePrice * effectiveHouseCpiFactor * houseVatFactor;
 
@@ -75,6 +77,8 @@ export function calculateMortgage(props: CalculateMortgageProps): MortgageResult
 
   return {
     housePriceToday,
+    houseCpiFactor: effectiveHouseCpiFactor,
+    houseVatFactor,
     totalPaidToday,
     remainingToday,
     inflationGain,
