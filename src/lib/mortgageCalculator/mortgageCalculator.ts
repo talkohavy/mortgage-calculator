@@ -79,7 +79,7 @@ export function calculateMortgage(props: CalculateMortgageProps): MortgageResult
 
   const remainingToday = housePriceToday - totalPaidToday;
   const remainingNominal = housePrice - totalPaidNominal;
-  const inflationGain = totalPaidNominal - totalPaidTodayCpiOnly;
+  const inflationGain = totalPaidTodayCpiOnly - totalPaidNominal;
   const vatGain = totalPaidTodayCpiOnly - totalPaidToday;
 
   return {
