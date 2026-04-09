@@ -31,13 +31,18 @@ export function calculateMortgage(props: CalculateMortgageProps): MortgageResult
 
   const houseVatFactor = calcVatFactor(vatAtPurchase, vatToday);
   const rawHouseCpiFactor = baseCpi > 0 ? currentCpi / baseCpi : 1;
-  // House price uses 100% CPI share (the subsidy applies only to the buyer's PMT obligations)
-  const housePriceToday = housePrice * rawHouseCpiFactor * houseVatFactor;
 
   let totalPaidToday = 0;
   let totalPaidNominal = 0;
   let totalPaidTodayCpiOnly = 0;
   const paymentBreakdown: PaymentBreakdownRow[] = [];
+
+  // Track weighted-average cpiShare across all valid payments so the house price uses the
+  // same effective CPI factor as the payments. This keeps the formula symmetric: when every
+  // row has cpiShare=0, neither the house price nor the payments are inflation-adjusted, and
+  // remaining = nominal remaining. When every row is 100, the formula degrades to pure CPI.
+  let totalWeight = 0;
+  let weightedShareSum = 0;
 
   for (const payment of payments) {
     if (payment.pmt > 0 && payment.cpi > 0) {
@@ -51,6 +56,9 @@ export function calculateMortgage(props: CalculateMortgageProps): MortgageResult
       totalPaidToday += todayValue;
       totalPaidTodayCpiOnly += payment.pmt * effectiveCpiFactor;
 
+      weightedShareSum += share * payment.pmt;
+      totalWeight += payment.pmt;
+
       paymentBreakdown.push({
         label: payment.label,
         nominal: payment.pmt,
@@ -60,6 +68,12 @@ export function calculateMortgage(props: CalculateMortgageProps): MortgageResult
       });
     }
   }
+
+  // Use weighted-average cpiShare (by payment amount) for the house price.
+  // Falls back to 100 when there are no valid payments.
+  const houseCpiShare = totalWeight > 0 ? weightedShareSum / totalWeight : 100;
+  const effectiveHouseCpiFactor = applyShare(rawHouseCpiFactor, houseCpiShare);
+  const housePriceToday = housePrice * effectiveHouseCpiFactor * houseVatFactor;
 
   const remainingToday = housePriceToday - totalPaidToday;
   const remainingNominal = housePrice - totalPaidNominal;
